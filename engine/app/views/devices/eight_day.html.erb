@@ -1,0 +1,66 @@
+<style>
+  html, body { margin: 0; padding: 0; font-size: 16px; }
+  .eight-day-columns { display: flex; width: 100vw; height: 100vh; gap: .65rem; padding: 2.25rem; box-sizing: border-box; }
+  .eight-day-col { flex: 1; padding: .35rem; overflow: hidden; border: 2px solid #000; border-radius: .35rem; display: flex; flex-direction: column; min-width: 0; }
+  .eight-day-col-today { border-width: 4px; }
+  .eight-day-col-previous { opacity: 0.45; }
+  .eight-day-header { text-align: center; font-weight: 700; font-size: 1rem; line-height: 1.2; margin-bottom: .25rem; }
+  .eight-day-date { font-size: .8rem; font-weight: 400; line-height: 1.2; }
+  .eight-day-weather-row { display: flex; justify-content: space-between; margin-bottom: .25rem; }
+  .eight-day-weather-item { display: flex; flex-direction: column; align-items: center; flex: 1 1 0; border: 1px solid #ccc; border-radius: .2rem; padding: .1rem; margin: 0 .05rem; min-width: 0; }
+  .eight-day-weather-item i { font-size: 1rem; }
+  .eight-day-weather-time { font-size: .55rem; }
+  .eight-day-weather-temp { font-size: .65rem; }
+  .eight-day-events { flex: 1; overflow: hidden; }
+  .eight-day-events img { width: 100%; display: block; margin-bottom: .2rem; border-radius: .2rem; }
+</style>
+
+<% unless view_object[:private_mode] %>
+  <div class="eight-day-columns">
+    <% view_object[:day_groups].each do |day| %>
+      <%
+        is_today = day[:date].to_date == view_object[:current_time].to_date
+        is_previous = day[:date].to_date < view_object[:current_time].to_date
+        col_class = "eight-day-col"
+        col_class += " eight-day-col-today" if is_today
+        col_class += " eight-day-col-previous" if is_previous
+      %>
+      <div class="<%= col_class %>">
+        <div class="eight-day-header">
+          <div><%= day[:day_name] %></div>
+          <div class="eight-day-date"><%= day[:date].strftime("%b %-d") %></div>
+        </div>
+
+        <% if day[:weather_row]&.any? %>
+          <div class="eight-day-weather-row">
+            <% day[:weather_row].each do |w| %>
+              <span class="eight-day-weather-item">
+                <span class="eight-day-weather-time"><%= w[:start_time] %></span>
+                <i class="mdi mdi-<%= w[:icon_class] %>"></i>
+                <span class="eight-day-weather-temp"><%= w[:summary] %></span>
+              </span>
+            <% end %>
+          </div>
+        <% end %>
+
+        <% if day[:show_daily] %>
+          <% day[:daily].select { |e| e[:attachment_image] }.each do |event| %>
+            <div class="eight-day-events">
+              <img src="<%= event[:attachment_image] %>">
+            </div>
+          <% end %>
+        <% end %>
+
+        <% day[:periodic].select { |e| e[:attachment_image] }.each do |event| %>
+          <div class="eight-day-events">
+            <img src="<%= event[:attachment_image] %>">
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<div class="timestamp" style="position: absolute; bottom: 1px; right: 1px; font-family: 'Lato', sans-serif; font-size: 9px; z-index: 10; writing-mode: vertical-rl; text-orientation: mixed;">
+  <%= view_object[:attribution] if view_object[:attribution].present? %> <%= view_object[:timestamp] %>
+</div>

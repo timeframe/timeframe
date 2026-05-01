@@ -20,7 +20,7 @@ class DemoDeviceContentTest < Minitest::Test
       assert result[:minutely_weather_minutes].is_a?(Array)
       assert_equal "weather-rainy", result[:minutely_weather_minutes_icon]
       assert result[:minutely_precipitation_bars].is_a?(Array)
-      assert_nil result[:attribution]
+      assert_equal "Weather", result[:attribution]
       assert_equal false, result[:private_mode]
     end
   end

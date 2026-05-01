@@ -12,7 +12,8 @@ class DeviceContent
     include_daily_weather: true,
     weather_row: false,
     start_time_only: false,
-    always_show_today: false
+    always_show_today: false,
+    start_offset: 0
   )
     current_time ||= Time.now.utc.in_time_zone(home_assistant_api.time_zone)
 
@@ -59,7 +60,7 @@ class DeviceContent
     raw_events << home_assistant_api.calendar_events
 
     out[:day_groups] =
-      (0...days).to_a.map do |day_index|
+      (start_offset...(start_offset + days)).to_a.map do |day_index|
         date = current_time + day_index.day
 
         day_name =
@@ -95,7 +96,7 @@ class DeviceContent
         weather_row_data = nil
 
         if weather_row
-          if day_index.zero?
+          if day_index <= 0
             all_day_events = calendar_feed.events_for(
               date.beginning_of_day.utc,
               date.end_of_day.utc,

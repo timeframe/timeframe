@@ -274,6 +274,7 @@ class DeviceTest < Minitest::Test
     assert_includes Device::SCREENSHOTTED_MODELS, "trmnl_og"
     assert_includes Device::SCREENSHOTTED_MODELS, "reterminal_e1001"
     assert_includes Device::SCREENSHOTTED_MODELS, "reterminal_e1003"
+    refute_includes Device::SCREENSHOTTED_MODELS, "display_1080p"
     refute_includes Device::SCREENSHOTTED_MODELS, "visionect_13"
     refute_includes Device::SCREENSHOTTED_MODELS, "boox_mira_pro"
     refute_includes Device::SCREENSHOTTED_MODELS, "boox_mira"

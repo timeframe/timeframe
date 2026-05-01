@@ -11,7 +11,8 @@ class Device < ActiveRecord::Base
     "boox_mira" => {name: "Boox Mira 13.3\"", template: "boox_mira", width: 1650, height: 2200, realtime: true},
     "trmnl_og" => {name: "TRMNL (OG)", template: "trmnl", width: 800, height: 480, templates: [{name: "trmnl", label: "Landscape Timeline"}, {name: "three_day", label: "3-Day"}, {name: "two_day", label: "2-Day Portrait"}], screenshotted: true},
     "reterminal_e1001" => {name: "reTerminal E1001 7.5\"", template: "trmnl", width: 800, height: 480, templates: [{name: "trmnl", label: "Landscape Timeline"}, {name: "three_day", label: "3-Day"}, {name: "two_day", label: "2-Day Portrait"}], screenshotted: true},
-    "reterminal_e1003" => {name: "reTerminal E1003 10.3\"", template: "reterminal", width: 1404, height: 1872, screenshotted: true}
+    "reterminal_e1003" => {name: "reTerminal E1003 10.3\"", template: "reterminal", width: 1404, height: 1872, screenshotted: true},
+    "display_1080p" => {name: "1080p Display", template: "eight_day", width: 1920, height: 1080, realtime: true}
   }.freeze
 
   REALTIME_MODELS = SUPPORTED_MODELS.select { |_, v| v[:realtime] }.keys.freeze
@@ -134,17 +135,21 @@ class Device < ActiveRecord::Base
     tz = timezone || location&.time_zone || "UTC"
     compact_view = %w[three_day two_day].include?(active_template)
     two_day = active_template == "two_day"
+    eight_day = active_template == "eight_day"
     args = {
       days:
         if two_day
           2
+        elsif eight_day
+          8
         else
           (compact_view ? 3 : 5)
         end,
-      include_precip: !compact_view, include_wind: !compact_view,
-      use_day_names: compact_view, include_daily_weather: !compact_view,
-      weather_row: compact_view, start_time_only: compact_view,
-      always_show_today: two_day
+      start_offset: eight_day ? -1 : 0,
+      include_precip: !compact_view && !eight_day, include_wind: !compact_view && !eight_day,
+      use_day_names: compact_view || eight_day, include_daily_weather: !compact_view && !eight_day,
+      weather_row: compact_view || eight_day, start_time_only: compact_view || eight_day,
+      always_show_today: two_day || eight_day
     }
     if demo_mode_enabled?
       DemoDeviceContent.new.call(timezone: tz, **args)

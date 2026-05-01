@@ -412,7 +412,7 @@ class HomeAssistantApi
 
     return [] unless hours.present?
 
-    [today, today.tomorrow, today + 2.days, today + 3.days, today + 4.days, today + 5.days].flat_map do |day|
+    (-1..7).map { |i| today + i.days }.flat_map do |day|
       [
         (day.noon - 4.hours),
         day.noon,

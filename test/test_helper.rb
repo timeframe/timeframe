@@ -43,6 +43,7 @@ require "vcr"
 VCR.configure do |config|
   config.cassette_library_dir = "test/vcr_cassettes"
   config.hook_into :webmock
+  config.ignore_localhost = true
 end
 
 # Seed HomeAssistantConfigApi cache with test data so time_zone is available in all tests

@@ -18,12 +18,12 @@ end
 SimpleCov.minimum_coverage line: 100, branch: 95
 
 ENV["RAILS_ENV"] = "test"
-require File.expand_path("dummy/config/environment", __dir__)
+require File.expand_path("dummy/config/environment", __dir__) unless defined?(Rails) && Rails.application&.initialized?
 require "minitest/autorun"
 require "minitest/mock"
 require "active_support/testing/time_helpers"
 
-DEPLOY_TIME = Time.now.to_i
+DEPLOY_TIME = Time.now.to_i unless defined?(DEPLOY_TIME)
 
 def test_user
   @test_user ||= begin
