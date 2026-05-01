@@ -139,7 +139,7 @@ class Api::TrmnlControllerTest < ActionDispatch::IntegrationTest
 
       device.reload
       assert device.last_connection_at.present?
-      assert_equal 4.1, device.battery_level
+      assert_equal 92, device.battery_level
       assert_equal "1.8.1", device.firmware_version
       assert_equal(-69, device.rssi)
     end

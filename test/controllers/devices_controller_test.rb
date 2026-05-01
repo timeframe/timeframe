@@ -25,7 +25,7 @@ class DevicesControllerTest < ActionDispatch::IntegrationTest
     get "/"
     assert_response :success
     assert_includes response.body, device.name
-    assert_includes response.body, "/setup"
+    assert_includes response.body, "/pair"
   end
 
   # --- create ---
@@ -201,7 +201,7 @@ class DevicesControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to root_path
     follow_redirect!
-    assert_includes response.body, "re-paired"
+    assert_includes response.body, "reconnected"
     pending.reload
     assert_equal device.id, pending.claimed_device_id
   end

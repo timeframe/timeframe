@@ -22,10 +22,11 @@
           <label class="form-label">Pairing Code</label>
           <input type="text" name="pairing_code" class="form-control" placeholder="e.g. 123456" autocomplete="off" inputmode="numeric" minlength="6" maxlength="6" pattern="[0-9]{6}" data-field="pairing">
         </div>
-        <p class="small text-muted" data-setup-note style="display: none;">On your Boox device, visit <code><%= request.base_url %>/setup</code> to get a pairing code.</p>
+        <p class="small text-muted" data-setup-note style="display: none;">On your Boox device, visit <code><%= request.base_url %>/pair</code> to get a pairing code.</p>
         <p class="small text-muted" data-trmnl-note style="display: none;">During TRMNL WiFi setup, tap Advanced &gt; Custom Server &gt; Yes and enter <code><%= request.base_url %></code> as the API server URL. The device will register and display a pairing code. <a href="https://help.trmnl.com/en/articles/12263392-connect-your-device-to-terminus-byos" target="_blank">Learn more</a></p>
         <p class="small text-muted" data-reterminal-note style="display: none;">In your reTerminal E10-3 SenseCraft HMI settings, set the API server URL to <code><%= request.base_url %></code>. The device will register and display a pairing code.</p>
         <p class="small text-muted" data-reterminal-e1001-note style="display: none;">During TRMNL WiFi setup, tap Advanced &gt; Custom Server &gt; Yes and enter <code><%= request.base_url %></code> as the API server URL. The device will register and display a pairing code.</p>
+        <p class="small text-muted" data-display-1080p-note style="display: none;">On your display device, visit <code><%= request.base_url %>/pair</code> to get a pairing code.</p>
         <%= submit_tag "Add Device", class: "btn btn-primary w-100", disabled: true, id: "add-device-btn" %>
       <% end %>
     </div>
@@ -42,6 +43,7 @@
   var trmnlNote = form.querySelector('[data-trmnl-note]');
   var reterminalNote = form.querySelector('[data-reterminal-note]');
   var reterminalE1001Note = form.querySelector('[data-reterminal-e1001-note]');
+  var display1080pNote = form.querySelector('[data-display-1080p-note]');
   var btn = document.getElementById('add-device-btn');
 
   function needsPairing() {
@@ -56,6 +58,7 @@
     trmnlNote.style.display = modelSelect.value === 'trmnl_og' ? '' : 'none';
     reterminalNote.style.display = modelSelect.value === 'reterminal_e1003' ? '' : 'none';
     reterminalE1001Note.style.display = modelSelect.value === 'reterminal_e1001' ? '' : 'none';
+    display1080pNote.style.display = modelSelect.value === 'display_1080p' ? '' : 'none';
 
     var valid = nameInput.value.trim() !== '' && modelSelect.value !== '';
     if (showPairing) valid = valid && /^[0-9]{6}$/.test(pairingInput.value);

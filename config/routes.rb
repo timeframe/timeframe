@@ -4,7 +4,7 @@ Rails.application.routes.draw do
   mount ActionCable.server => "/cable"
 
   root to: "dashboard#index"
-  get "setup", to: "setup#index"
+  get "pair", to: "setup#index"
   get "status", to: "status#index"
   post "claim_device", to: "dashboard#claim_device", as: :claim_device
 

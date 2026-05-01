@@ -12,7 +12,7 @@
   .eight-day-weather-time { font-size: .55rem; }
   .eight-day-weather-temp { font-size: .65rem; }
   .eight-day-events { flex: 1; overflow: hidden; }
-  .eight-day-events img { width: 100%; display: block; margin-bottom: .2rem; border-radius: .2rem; }
+  .eight-day-events img { width: 100%; display: block; margin-bottom: .2rem; border-radius: .2rem; border: 1px solid #999; }
 </style>
 
 <% unless view_object[:private_mode] %>
@@ -43,19 +43,17 @@
           </div>
         <% end %>
 
-        <% if day[:show_daily] %>
-          <% day[:daily].select { |e| e[:attachment_image] }.each do |event| %>
-            <div class="eight-day-events">
+        <div class="eight-day-events">
+          <% if day[:show_daily] %>
+            <% day[:daily].select { |e| e[:attachment_image] }.each do |event| %>
               <img src="<%= event[:attachment_image] %>">
-            </div>
+            <% end %>
           <% end %>
-        <% end %>
 
-        <% day[:periodic].select { |e| e[:attachment_image] }.each do |event| %>
-          <div class="eight-day-events">
+          <% day[:periodic].select { |e| e[:attachment_image] }.each do |event| %>
             <img src="<%= event[:attachment_image] %>">
-          </div>
-        <% end %>
+          <% end %>
+        </div>
       </div>
     <% end %>
   </div>

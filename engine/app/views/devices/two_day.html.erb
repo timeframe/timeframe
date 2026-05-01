@@ -41,7 +41,7 @@
         <% if day[:show_daily] && day[:daily].any? %>
           <div class="two-day-events">
             <% day[:daily].select { |e| e[:attachment_image] }.each do |event| %>
-              <img src="<%= event[:attachment_image] %>" style="width: 100%; display: block; margin-bottom: .25rem; border-radius: .25rem;">
+              <img src="<%= event[:attachment_image] %>" style="width: 100%; display: block; margin-bottom: .25rem; border-radius: .25rem; border: 1px solid #999;">
             <% end %>
           </div>
         <% end %>
@@ -50,7 +50,7 @@
         <% if image_periodic.any? %>
           <div class="two-day-events">
             <% image_periodic.each do |event| %>
-              <img src="<%= event[:attachment_image] %>" style="width: 100%; display: block; margin-bottom: .25rem; border-radius: .25rem;">
+              <img src="<%= event[:attachment_image] %>" style="width: 100%; display: block; margin-bottom: .25rem; border-radius: .25rem; border: 1px solid #999;">
             <% end %>
           </div>
         <% end %>

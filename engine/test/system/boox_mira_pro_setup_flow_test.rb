@@ -10,8 +10,8 @@ class BooxMiraProSetupFlowTest < ApplicationSystemTestCase
   end
 
   test "pair a Boox Mira Pro 25 inch from setup through dashboard and verify display content" do
-    # Step 1: Visit /setup as an unauthenticated device to get a pairing code
-    visit "/setup"
+    # Step 1: Visit /pair as an unauthenticated device to get a pairing code
+    visit "/pair"
     assert_text "Timeframe"
     assert_text "Enter this pairing code on your Timeframe dashboard"
 

@@ -109,7 +109,7 @@ class DevicesController < ApplicationController
 
     pending_device.update!(claimed_device: device)
     device.rotate_session_token!
-    redirect_back fallback_location: root_path, notice: "\"#{device.name}\" re-paired successfully."
+    redirect_back fallback_location: root_path, notice: "\"#{device.name}\" reconnected successfully."
   end
 
   def confirmation_image

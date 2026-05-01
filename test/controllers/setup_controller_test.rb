@@ -15,7 +15,7 @@ class SetupControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "setup page creates pending device and shows pairing code" do
-    get "/setup"
+    get "/pair"
     assert_response :success
     assert PendingDevice.count > 0
     assert_includes response.body, PendingDevice.last.pairing_code
@@ -81,7 +81,7 @@ class SetupControllerTest < ActionDispatch::IntegrationTest
     pending = PendingDevice.create!(mac_address: mac, api_key: SecureRandom.hex(16), friendly_id: SecureRandom.alphanumeric(6).upcase)
 
     # First visit with this pending device in session
-    get "/setup"
+    get "/pair"
     assert_response :success
 
     # Override session to use our pending device
@@ -92,7 +92,7 @@ class SetupControllerTest < ActionDispatch::IntegrationTest
     # We need to test the "already claimed" path via session
     # Simulate by setting claimed_device_id in session
     pending.claimed_device
-    get "/setup" # gets a new pending device
+    get "/pair" # gets a new pending device
 
     # Now let's test the other branch: visiting setup with a previously-claimed device
     # This requires the session to have claimed_device_id set
@@ -102,17 +102,17 @@ class SetupControllerTest < ActionDispatch::IntegrationTest
 
   test "setup page redirects when user is authenticated" do
     login_as(test_user, scope: :user)
-    get "/setup"
+    get "/pair"
     assert_response :redirect
   end
 
   test "setup page reuses existing pending device from session" do
-    get "/setup"
+    get "/pair"
     assert_response :success
     first_code = PendingDevice.last.pairing_code
 
     # Second visit should reuse the same pending device
-    get "/setup"
+    get "/pair"
     assert_response :success
     assert_equal first_code, PendingDevice.last.pairing_code
   end

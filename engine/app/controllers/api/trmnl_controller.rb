@@ -101,7 +101,10 @@ module Api
     def update_device_from_headers(device)
       attrs = {}
       attrs[:firmware_version] = request.headers["FW-Version"] if request.headers["FW-Version"].present?
-      attrs[:battery_level] = request.headers["Battery-Voltage"].to_f if request.headers["Battery-Voltage"].present?
+      if request.headers["Battery-Voltage"].present?
+        voltage = request.headers["Battery-Voltage"].to_f
+        attrs[:battery_level] = ((voltage - 3.0) / 1.2 * 100).clamp(0, 100).round
+      end
       attrs[:rssi] = request.headers["RSSI"].to_i if request.headers["RSSI"].present?
       device.update_columns(attrs) if attrs.any?
     end
