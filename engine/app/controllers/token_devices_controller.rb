@@ -33,7 +33,9 @@ class TokenDevicesController < ApplicationController
 
   def screenshot
     @device.refresh_screenshot!(request.base_url) if @device.cached_image.blank? || params[:force] == "true"
-    image_data = Base64.strict_decode64(@device.reload.cached_image)
+    @device.reload
+    log_image_served(@device)
+    image_data = Base64.strict_decode64(@device.cached_image)
 
     send_data image_data, type: "image/png", disposition: "inline", filename: "#{@device.id}.png?#{Time.now.to_i}"
   end
@@ -47,5 +49,15 @@ class TokenDevicesController < ApplicationController
         ActiveSupport::SecurityUtils.secure_compare(@device.display_key, params[:key].to_s)
       render plain: "Not authorized", status: :unauthorized
     end
+  end
+
+  def log_image_served(device)
+    return unless defined?(AuditLog) && device.cached_image_at.present?
+    cache_age_seconds = (Time.current - device.cached_image_at).round
+    AuditLog.create!(
+      subject: device,
+      event_type: "image_served",
+      metadata: {cache_age_seconds: cache_age_seconds, source: "token_device"}
+    )
   end
 end

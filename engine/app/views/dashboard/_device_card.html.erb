@@ -70,6 +70,10 @@
             <li><a class="dropdown-item" href="<%= screenshot_account_location_device_path(account, device.location, device) %>">Screenshot</a></li>
             <li><hr class="dropdown-divider"></li>
           <% end %>
+          <% if defined?(current_user) && current_user&.respond_to?(:is_admin?) && current_user.is_admin? %>
+            <li><%= link_to "Audit Log", admin_device_path(device), class: "dropdown-item" %></li>
+            <li><hr class="dropdown-divider"></li>
+          <% end %>
           <% if device.template_options %>
             <% device.template_options.each do |tmpl| %>
               <li>
