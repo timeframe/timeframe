@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 5) do
+ActiveRecord::Schema[8.1].define(version: 3) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -28,7 +28,66 @@ ActiveRecord::Schema[8.1].define(version: 5) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "name", null: false
+    t.string "precipitation_unit", default: "in", null: false
+    t.string "speed_unit", default: "mph", null: false
+    t.string "temperature_unit", default: "F", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "audit_logs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "event_type", null: false
+    t.json "metadata"
+    t.string "result_type"
+    t.bigint "subject_id", null: false
+    t.string "subject_type", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id"
+    t.index ["created_at"], name: "index_audit_logs_on_created_at"
+    t.index ["event_type"], name: "index_audit_logs_on_event_type"
+    t.index ["subject_type", "subject_id"], name: "index_audit_logs_on_subject"
+    t.index ["user_id"], name: "index_audit_logs_on_user_id"
+  end
+
+  create_table "calendar_events", force: :cascade do |t|
+    t.string "attachment_content_type"
+    t.text "attachment_data"
+    t.bigint "calendar_id", null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "end_timezone"
+    t.datetime "ends_at", null: false
+    t.string "external_id", null: false
+    t.string "location"
+    t.string "start_timezone"
+    t.datetime "starts_at", null: false
+    t.string "title"
+    t.datetime "updated_at", null: false
+    t.index ["calendar_id", "external_id"], name: "index_calendar_events_on_calendar_id_and_external_id", unique: true
+    t.index ["calendar_id"], name: "index_calendar_events_on_calendar_id"
+    t.index ["ends_at"], name: "index_calendar_events_on_ends_at"
+    t.index ["starts_at"], name: "index_calendar_events_on_starts_at"
+  end
+
+  create_table "calendars", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "disabled_at"
+    t.string "external_id"
+    t.bigint "google_account_id"
+    t.string "icon"
+    t.datetime "last_synced_at"
+    t.string "name", null: false
+    t.string "source_type", null: false
+    t.datetime "updated_at", null: false
+    t.string "url"
+    t.string "webhook_channel_id"
+    t.datetime "webhook_expires_at"
+    t.string "webhook_resource_id"
+    t.index ["account_id", "source_type", "url"], name: "index_calendars_on_account_id_and_source_type_and_url", unique: true
+    t.index ["account_id"], name: "index_calendars_on_account_id"
+    t.index ["google_account_id", "external_id"], name: "index_calendars_on_google_account_id_and_external_id", unique: true
+    t.index ["google_account_id"], name: "index_calendars_on_google_account_id"
   end
 
   create_table "devices", force: :cascade do |t|
@@ -36,6 +95,7 @@ ActiveRecord::Schema[8.1].define(version: 5) do
     t.float "battery_level"
     t.text "cached_image"
     t.datetime "cached_image_at"
+    t.jsonb "configuration", default: {}, null: false
     t.string "confirmation_code"
     t.datetime "confirmed_at"
     t.datetime "created_at", null: false
@@ -45,7 +105,6 @@ ActiveRecord::Schema[8.1].define(version: 5) do
     t.string "display_template", default: "default", null: false
     t.string "firmware_version"
     t.string "friendly_id"
-    t.jsonb "configuration", default: {}, null: false
     t.datetime "last_connection_at"
     t.bigint "location_id"
     t.text "mac_address"
@@ -141,6 +200,19 @@ ActiveRecord::Schema[8.1].define(version: 5) do
     t.index ["scheduled_at"], name: "index_good_jobs_on_scheduled_at", where: "(finished_at IS NULL)"
   end
 
+  create_table "google_accounts", force: :cascade do |t|
+    t.text "access_token", null: false
+    t.bigint "account_id", null: false
+    t.datetime "created_at", null: false
+    t.text "email", null: false
+    t.text "google_uid", null: false
+    t.text "refresh_token", null: false
+    t.datetime "token_expires_at"
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "google_uid"], name: "index_google_accounts_on_account_id_and_google_uid", unique: true
+    t.index ["account_id"], name: "index_google_accounts_on_account_id"
+  end
+
   create_table "locations", force: :cascade do |t|
     t.bigint "account_id", null: false
     t.datetime "created_at", null: false
@@ -168,16 +240,35 @@ ActiveRecord::Schema[8.1].define(version: 5) do
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "email", null: false
-    t.text "magic_link_nonce"
+    t.boolean "is_admin", default: false, null: false
+    t.text "login_code"
+    t.integer "login_code_attempts", default: 0, null: false
+    t.datetime "login_code_sent_at"
     t.datetime "remember_created_at"
     t.text "remember_token"
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  create_table "weather_syncs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "fetched_at", null: false
+    t.bigint "location_id", null: false
+    t.jsonb "response_data", null: false
+    t.datetime "updated_at", null: false
+    t.index ["location_id", "fetched_at"], name: "index_weather_syncs_on_location_id_and_fetched_at"
+    t.index ["location_id"], name: "index_weather_syncs_on_location_id"
+  end
+
   add_foreign_key "account_users", "accounts"
   add_foreign_key "account_users", "users"
+  add_foreign_key "audit_logs", "users"
+  add_foreign_key "calendar_events", "calendars"
+  add_foreign_key "calendars", "accounts"
+  add_foreign_key "calendars", "google_accounts"
   add_foreign_key "devices", "locations"
+  add_foreign_key "google_accounts", "accounts"
   add_foreign_key "locations", "accounts"
   add_foreign_key "pending_devices", "devices", column: "claimed_device_id"
+  add_foreign_key "weather_syncs", "locations"
 end

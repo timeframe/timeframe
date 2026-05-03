@@ -15,7 +15,9 @@ class CreateCoreTables < ActiveRecord::Migration[8.1]
     create_table :users do |t|
       t.text :email, null: false
       t.boolean :is_admin, default: false, null: false
-      t.text :magic_link_nonce
+      t.text :login_code
+      t.integer :login_code_attempts, default: 0, null: false
+      t.datetime :login_code_sent_at
       t.datetime :remember_created_at
       t.text :remember_token
       t.timestamps
