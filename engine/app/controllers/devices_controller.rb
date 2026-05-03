@@ -22,6 +22,7 @@ class DevicesController < ApplicationController
     end
 
     view_object = @device.device_content
+    view_object[:configuration] = @device.try(:configuration) || {}
 
     render "devices/#{template}", locals: {view_object: view_object}, layout: params[:layout] != "false"
   rescue => e
@@ -52,6 +53,9 @@ class DevicesController < ApplicationController
     if model == "visionect_13"
       @location.devices.create!(name: name, model: model)
       redirect_back fallback_location: root_path, notice: "Device \"#{name}\" added."
+    elsif current_user.respond_to?(:is_admin?) && current_user.is_admin? && params[:pairing_code].blank?
+      @location.devices.create!(name: name, model: model, mac_address: SecureRandom.hex(6), confirmed_at: Time.current)
+      redirect_back fallback_location: root_path, notice: "Device \"#{name}\" added."
     else
       pairing_code = params[:pairing_code].to_s.strip
       pending_device = PendingDevice.find_active_by_code(pairing_code)
@@ -76,6 +80,15 @@ class DevicesController < ApplicationController
   def update_template
     device = @location.devices.find(params[:id])
     device.update!(display_template: params[:display_template])
+    RefreshDeviceScreenshotJob.perform_later(device.id) if device.screenshotted?
+    redirect_back fallback_location: root_path
+  end
+
+  def update_configuration
+    device = @location.devices.find(params[:id])
+    config = device.configuration || {}
+    config[params[:key]] = params[:value]
+    device.update!(configuration: config)
     RefreshDeviceScreenshotJob.perform_later(device.id) if device.screenshotted?
     redirect_back fallback_location: root_path
   end

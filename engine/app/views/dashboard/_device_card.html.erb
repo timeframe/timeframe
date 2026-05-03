@@ -85,6 +85,16 @@
             <% end %>
             <li><hr class="dropdown-divider"></li>
           <% end %>
+          <% if device.active_template == "two_day" %>
+            <li>
+              <%= form_with url: update_configuration_account_location_device_path(account, location, device), method: :patch do %>
+                <input type="hidden" name="key" value="hide_dates">
+                <input type="hidden" name="value" value="<%= device.configuration&.dig("hide_dates") == "true" ? "false" : "true" %>">
+                <%= submit_tag(device.configuration&.dig("hide_dates") == "true" ? "Show Dates" : "Hide Dates", class: "dropdown-item", style: "border: none; background: none; width: 100%; text-align: left; cursor: pointer;") %>
+              <% end %>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+          <% end %>
           <li>
             <%= form_with url: account_location_device_path(account, location, device), method: :patch do %>
               <%= submit_tag(device.demo_mode_enabled? ? "Disable Demo Mode" : "Enable Demo Mode", class: "dropdown-item", style: "border: none; background: none; width: 100%; text-align: left; cursor: pointer;") %>

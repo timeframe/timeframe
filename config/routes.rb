@@ -16,6 +16,7 @@ Rails.application.routes.draw do
         get :confirmation_image, on: :member
         get :screenshot, on: :member
         patch :update_template, on: :member
+        patch :update_configuration, on: :member
         post :regenerate_tokens, on: :member
         post :repair, on: :member
       end

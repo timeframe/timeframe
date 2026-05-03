@@ -45,6 +45,7 @@ ActiveRecord::Schema[8.1].define(version: 5) do
     t.string "display_template", default: "default", null: false
     t.string "firmware_version"
     t.string "friendly_id"
+    t.jsonb "configuration", default: {}, null: false
     t.datetime "last_connection_at"
     t.bigint "location_id"
     t.text "mac_address"

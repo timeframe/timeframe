@@ -1,7 +1,7 @@
 class DeviceEvent
   DAY_IN_SECONDS = 86_400
 
-  attr_reader :id, :starts_at, :ends_at, :multi_day, :location, :icon_rotation, :attachment_image
+  attr_reader :id, :starts_at, :ends_at, :multi_day, :location, :icon_rotation, :attachment_image, :kids_icon
   attr_accessor :icon
 
   def initialize(
@@ -19,6 +19,11 @@ class DeviceEvent
   )
     @id, @icon, @icon_rotation, @summary, @description, @location, @daily, @timezone, @attachment_image =
       id, icon, icon_rotation, summary.gsub(/[^a-zA-Z0-9.\-"\  _°\/\\&:+,?()<>'@#\u2019]/, ""), description, location, daily, timezone, attachment_image
+
+    @kids_icon = @description&.match(/timeframe-kids-icon:(\S+)/)&.captures&.first
+
+    title_override = @description&.match(/timeframe-title:(.+?)(?:\n|$)/)&.captures&.first&.strip
+    @summary = title_override if title_override.present?
 
     @starts_at = case starts_at
     when Integer
@@ -54,6 +59,14 @@ class DeviceEvent
 
   def omit?
     @summary.blank? || @description&.include?("timeframe-omit") || false
+  end
+
+  def hidden_for?(device_name)
+    return false unless @description.present? && device_name.present?
+    match = @description.match(/timeframe-only:(.+?)(?:\n|$)/)
+    return false unless match
+    allowed = match[1].split(",").map(&:strip).map(&:downcase)
+    !allowed.include?(device_name.downcase)
   end
 
   def start_i
@@ -149,7 +162,8 @@ class DeviceEvent
       location: location,
       time_html: time.to_s,
       start_time: start_time,
-      attachment_image: attachment_image
+      attachment_image: attachment_image,
+      kids_icon: kids_icon
     }
   end
 end

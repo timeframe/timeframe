@@ -10,11 +10,14 @@
   .two-day-weather-item i { font-size: 1.5rem; }
   .two-day-weather-time { font-size: .75rem; }
   .two-day-weather-temp { font-size: 1rem; }
-  .two-day-events { font-size: 1.25rem; flex: 1; overflow: hidden; }
+  .two-day-events { font-size: 1.25rem; overflow: hidden; }
   .two-day-events table { width: 100%; border-collapse: collapse; }
   .two-day-events td { padding: .05rem 0; }
   .two-day-event-icon { width: 1rem; text-align: center; font-size: .85rem; font-weight: bold; }
   .two-day-event-summary { text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 0; }
+  .two-day-kids-event { display: flex; flex-direction: column; align-items: center; padding: .25rem 0; }
+  .two-day-kids-icon { font-size: 10rem; line-height: 1; }
+  .two-day-kids-summary { font-size: 1.5rem; }
 </style>
 
 <% unless view_object[:private_mode] %>
@@ -23,7 +26,9 @@
       <div class="two-day-col<%= ' two-day-col-other' unless day[:date].to_date == view_object[:current_time].to_date %>">
         <div class="two-day-header">
           <div><%= day[:day_name] %></div>
-          <div class="two-day-date"><%= day[:date].strftime("%B %-d") %></div>
+          <% unless view_object.dig(:configuration, "hide_dates") == "true" %>
+            <div class="two-day-date"><%= day[:date].strftime("%B %-d") %></div>
+          <% end %>
         </div>
 
         <% if day[:weather_row]&.any? %>
@@ -41,16 +46,29 @@
         <% if day[:show_daily] && day[:daily].any? %>
           <div class="two-day-events">
             <% day[:daily].select { |e| e[:attachment_image] }.each do |event| %>
-              <img src="<%= event[:attachment_image] %>" style="width: 100%; display: block; margin-bottom: .25rem; border-radius: .25rem; border: 1px solid #999;">
+              <img src="<%= event[:attachment_image] %>" style="width: 100%; display: block; margin-bottom: .25rem; border-radius: .25rem; border: 1px solid #999; box-sizing: border-box;">
+            <% end %>
+            <% day[:daily].select { |e| e[:kids_icon] }.each do |event| %>
+              <div class="two-day-kids-event">
+                <i class="mdi mdi-<%= event[:kids_icon] %> two-day-kids-icon"></i>
+                <span class="two-day-kids-summary"><%= event[:summary] %></span>
+              </div>
             <% end %>
           </div>
         <% end %>
 
         <% image_periodic = day[:periodic].select { |e| e[:attachment_image] } %>
-        <% if image_periodic.any? %>
+        <% kids_periodic = day[:periodic].select { |e| e[:kids_icon] } %>
+        <% if image_periodic.any? || kids_periodic.any? %>
           <div class="two-day-events">
             <% image_periodic.each do |event| %>
-              <img src="<%= event[:attachment_image] %>" style="width: 100%; display: block; margin-bottom: .25rem; border-radius: .25rem; border: 1px solid #999;">
+              <img src="<%= event[:attachment_image] %>" style="width: 100%; display: block; margin-bottom: .25rem; border-radius: .25rem; border: 1px solid #999; box-sizing: border-box;">
+            <% end %>
+            <% kids_periodic.each do |event| %>
+              <div class="two-day-kids-event">
+                <i class="mdi mdi-<%= event[:kids_icon] %> two-day-kids-icon"></i>
+                <span class="two-day-kids-summary"><%= event[:summary] %></span>
+              </div>
             <% end %>
           </div>
         <% end %>

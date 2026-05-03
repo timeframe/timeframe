@@ -77,11 +77,14 @@ class DeviceContent
             end
           end
 
+        device_name = device&.name
+
         events = calendar_feed.events_for(
           ((day_index.zero? && !always_show_today) ? current_time : date.beginning_of_day).utc,
           date.end_of_day.utc,
           raw_events.flatten,
-          private_mode
+          private_mode,
+          device_name: device_name
         )
 
         # Attempt to hide Today if it's after 8pm and there are no events
@@ -101,7 +104,8 @@ class DeviceContent
               date.beginning_of_day.utc,
               date.end_of_day.utc,
               raw_events.flatten,
-              false
+              false,
+              device_name: device_name
             )
             weather_events = all_day_events[:periodic].select(&:weather?)
           else

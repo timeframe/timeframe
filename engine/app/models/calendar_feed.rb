@@ -3,14 +3,14 @@
 class CalendarFeed
   # Returns calendar events for a given UTC integer time range,
   # adding a `time` key for the time formatted for the user's timezone
-  def events_for(starts_at, ends_at, events = [], private_mode = false)
+  def events_for(starts_at, ends_at, events = [], private_mode = false, device_name: nil)
     filtered_events = events.compact.select do |event|
       if event.start_i == event.end_i
         [event.start_i, event.end_i].any? { (starts_at.to_i...ends_at.to_i).cover?(it) }
       else
         (event.start_i...event.end_i).overlaps?(starts_at.to_i...ends_at.to_i)
       end
-    end.select { !it.omit? }
+    end.select { !it.omit? }.reject { it.hidden_for?(device_name) }
 
     # Merge duplicate events, merging the icon with a custom rule if so
     filtered_events = filtered_events.group_by { it.id }

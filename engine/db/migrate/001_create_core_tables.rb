@@ -51,6 +51,7 @@ class CreateCoreTables < ActiveRecord::Migration[8.1]
       t.string :display_template, default: "default", null: false
       t.string :firmware_version
       t.string :friendly_id
+      t.jsonb :configuration, default: {}, null: false
       t.datetime :last_connection_at
       t.references :location, foreign_key: true
       t.text :mac_address

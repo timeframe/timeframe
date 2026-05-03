@@ -25,6 +25,7 @@ class TokenDevicesController < ApplicationController
     end
 
     view_object = @device.device_content
+    view_object[:configuration] = @device.try(:configuration) || {}
 
     render "devices/#{template}", locals: {view_object: view_object}, layout: params[:layout] != "false"
   rescue => e

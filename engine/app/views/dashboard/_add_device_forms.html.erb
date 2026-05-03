@@ -21,6 +21,9 @@
         <div class="mb-3" data-pairing-code style="display: none;">
           <label class="form-label">Pairing Code</label>
           <input type="text" name="pairing_code" class="form-control" placeholder="e.g. 123456" autocomplete="off" inputmode="numeric" minlength="6" maxlength="6" pattern="[0-9]{6}" data-field="pairing">
+          <% if defined?(current_user) && current_user&.respond_to?(:is_admin?) && current_user.is_admin? %>
+            <small class="text-muted">Optional for admins</small>
+          <% end %>
         </div>
         <p class="small text-muted" data-setup-note style="display: none;">On your Boox device, visit <code><%= request.base_url %>/pair</code> to get a pairing code.</p>
         <p class="small text-muted" data-trmnl-note style="display: none;">During TRMNL WiFi setup, tap Advanced &gt; Custom Server &gt; Yes and enter <code><%= request.base_url %></code> as the API server URL. The device will register and display a pairing code. <a href="https://help.trmnl.com/en/articles/12263392-connect-your-device-to-terminus-byos" target="_blank">Learn more</a></p>
@@ -50,10 +53,13 @@
     return modelSelect.value !== '' && modelSelect.value !== 'visionect_13';
   }
 
+  <% admin = defined?(current_user) && current_user&.respond_to?(:is_admin?) && current_user&.is_admin? %>
+  var isAdmin = <%= admin ? "true" : "false" %>;
+
   function updateState() {
     var showPairing = needsPairing();
     pairingWrap.style.display = showPairing ? '' : 'none';
-    pairingInput.required = showPairing;
+    pairingInput.required = showPairing && !isAdmin;
     setupNote.style.display = (modelSelect.value === 'boox_mira_pro' || modelSelect.value === 'boox_mira') ? '' : 'none';
     trmnlNote.style.display = modelSelect.value === 'trmnl_og' ? '' : 'none';
     reterminalNote.style.display = modelSelect.value === 'reterminal_e1003' ? '' : 'none';
@@ -61,7 +67,8 @@
     display1080pNote.style.display = modelSelect.value === 'display_1080p' ? '' : 'none';
 
     var valid = nameInput.value.trim() !== '' && modelSelect.value !== '';
-    if (showPairing) valid = valid && /^[0-9]{6}$/.test(pairingInput.value);
+    if (showPairing && !isAdmin) valid = valid && /^[0-9]{6}$/.test(pairingInput.value);
+    if (showPairing && isAdmin && pairingInput.value !== '') valid = valid && /^[0-9]{6}$/.test(pairingInput.value);
     btn.disabled = !valid;
   }
 

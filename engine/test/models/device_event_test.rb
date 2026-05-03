@@ -342,4 +342,139 @@ class DeviceEventTest < Minitest::Test
 
     assert_equal("5p", event.as_json[:start_time])
   end
+
+  def test_hidden_for_returns_false_without_description
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "foo"
+    )
+
+    refute(event.hidden_for?("Kitchen"))
+  end
+
+  def test_hidden_for_returns_false_without_timeframe_only_tag
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "foo",
+      description: "just a regular description"
+    )
+
+    refute(event.hidden_for?("Kitchen"))
+  end
+
+  def test_hidden_for_returns_false_when_device_matches
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "foo",
+      description: "timeframe-only:Kitchen"
+    )
+
+    refute(event.hidden_for?("Kitchen"))
+  end
+
+  def test_hidden_for_returns_true_when_device_does_not_match
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "foo",
+      description: "timeframe-only:Kitchen"
+    )
+
+    assert(event.hidden_for?("Living Room"))
+  end
+
+  def test_hidden_for_is_case_insensitive
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "foo",
+      description: "timeframe-only:kitchen"
+    )
+
+    refute(event.hidden_for?("Kitchen"))
+  end
+
+  def test_hidden_for_supports_multiple_devices
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "foo",
+      description: "timeframe-only:Kitchen, Living Room"
+    )
+
+    refute(event.hidden_for?("Kitchen"))
+    refute(event.hidden_for?("Living Room"))
+    assert(event.hidden_for?("Bedroom"))
+  end
+
+  def test_hidden_for_returns_false_with_nil_device_name
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "foo",
+      description: "timeframe-only:Kitchen"
+    )
+
+    refute(event.hidden_for?(nil))
+  end
+
+  def test_kids_icon_parsed_from_description
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "Church",
+      description: "timeframe-kids-icon:church"
+    )
+
+    assert_equal("church", event.kids_icon)
+    assert_equal("church", event.as_json[:kids_icon])
+  end
+
+  def test_kids_icon_nil_without_tag
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "foo"
+    )
+
+    assert_nil(event.kids_icon)
+  end
+
+  def test_title_override_from_description
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "Original Title",
+      description: "timeframe-title:Custom Title"
+    )
+
+    assert_equal("Custom Title", event.summary)
+    assert_equal("Custom Title", event.as_json[:summary])
+  end
+
+  def test_title_override_not_applied_without_tag
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "Original Title",
+      description: "just a note"
+    )
+
+    assert_equal("Original Title", event.summary)
+  end
+
+  def test_title_override_with_other_tags
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "Original",
+      description: "timeframe-kids-icon:church\ntimeframe-title:Sunday Service"
+    )
+
+    assert_equal("Sunday Service", event.summary)
+    assert_equal("church", event.kids_icon)
+  end
 end
