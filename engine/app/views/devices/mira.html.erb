@@ -120,10 +120,10 @@
     var now = new Date();
     var overlay = document.getElementById('flash-overlay');
     if (!overlay) return;
-    if (now.getMinutes() === 0 && now.getSeconds() < 8) {
-      var s = now.getSeconds();
+    var sec = now.getSeconds();
+    if (now.getMinutes() === 0 && sec >= 10 && sec < 18) {
       overlay.style.display = 'block';
-      overlay.style.backgroundColor = (s % 4 < 2) ? 'black' : 'white';
+      overlay.style.backgroundColor = ((sec - 10) % 4 < 2) ? 'black' : 'white';
     } else {
       overlay.style.display = 'none';
     }

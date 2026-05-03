@@ -28,6 +28,13 @@ module HaAddon
 
     config.active_job.queue_adapter = :good_job
     config.good_job.execution_mode = :async
+    config.good_job.enable_cron = true
+    config.good_job.cron = {
+      refresh_disconnected_screenshots: {
+        cron: "0 * * * *",
+        class: "RefreshDisconnectedDeviceScreenshotsJob"
+      }
+    }
 
     config.after_initialize do
       if defined?(GoodJob)

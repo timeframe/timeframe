@@ -74,6 +74,10 @@ class DevicesController < ApplicationController
   def update
     device = @location.devices.find(params[:id])
     device.update!(demo_mode_enabled: !device.demo_mode_enabled?)
+    if device.realtime_display?
+      DeviceBroadcaster.clear_hash(device.id)
+      DeviceBroadcaster.broadcast_if_changed(device)
+    end
     redirect_back fallback_location: root_path
   end
 

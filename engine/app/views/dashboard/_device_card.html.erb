@@ -165,8 +165,10 @@
               <div class="modal-body">
                 <% if device.reterminal_e1003? %>
                   <p>On your reTerminal, reconnect to the API server at <code><%= request.base_url %></code> to get a new pairing code.</p>
+                <% elsif device.trmnl? || device.reterminal_e1001? %>
+                  <p>On your device, reconnect to the API server at <code><%= request.base_url %></code> to get a new pairing code.</p>
                 <% else %>
-                  <p>On your Boox device, visit <code><%= request.base_url %>/setup</code> to get a new pairing code.</p>
+                  <p>On your device, visit <code><%= request.base_url %>/pair</code> to get a new pairing code.</p>
                 <% end %>
                 <label class="form-label">Pairing Code</label>
                 <input type="text" name="pairing_code" class="form-control" placeholder="e.g. 123456" autocomplete="off" inputmode="numeric" minlength="6" maxlength="6" pattern="[0-9]{6}" data-repair-input="<%= device.id %>">
