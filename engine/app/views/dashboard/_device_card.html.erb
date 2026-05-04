@@ -210,15 +210,15 @@
               </div>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-0 d-flex align-items-center justify-content-center" style="background: #f0f0f0;">
-              <div style="position: relative; width: <%= device.display_width %>px; height: <%= device.display_height %>px; transform-origin: center center; background: white;">
+            <div class="modal-body p-0 d-flex align-items-center justify-content-center" style="background: #f0f0f0; overflow: hidden;">
+              <div data-preview-container="<%= device.id %>" style="position: relative; background: white; overflow: hidden;">
                 <iframe
                   data-preview-iframe="<%= device.id %>"
                   src="<%= preview_account_location_device_path(account, location, device) %>"
                   width="<%= device.display_width %>"
                   height="<%= device.display_height %>"
                   scrolling="no"
-                  style="border: none; position: absolute; top: 0; left: 0; width: <%= device.display_width %>px; height: <%= device.display_height %>px; transform-origin: center center;"
+                  style="border: none; position: absolute; top: 0; left: 0; width: <%= device.display_width %>px; height: <%= device.display_height %>px; transform-origin: top left;"
                 ></iframe>
               </div>
             </div>
@@ -234,7 +234,9 @@
           var goBtn = document.querySelector('[data-preview-go="' + deviceId + '"]');
           var iframe = document.querySelector('[data-preview-iframe="' + deviceId + '"]');
           var modal = document.getElementById('preview-device-' + deviceId);
-          var container = iframe.parentElement;
+          var container = document.querySelector('[data-preview-container="' + deviceId + '"]');
+          var deviceWidth = <%= device.display_width %>;
+          var deviceHeight = <%= device.display_height %>;
 
           function updatePreview() {
             var at = dateInput.value + 'T' + timeInput.value + ':00';
@@ -243,10 +245,12 @@
 
           function scaleToFit() {
             var modalBody = container.parentElement;
-            var scaleX = modalBody.clientWidth / <%= device.display_width %>;
-            var scaleY = modalBody.clientHeight / <%= device.display_height %>;
+            var scaleX = modalBody.clientWidth / deviceWidth;
+            var scaleY = modalBody.clientHeight / deviceHeight;
             var scale = Math.min(scaleX, scaleY, 1);
-            container.style.transform = 'scale(' + scale + ')';
+            iframe.style.transform = 'scale(' + scale + ')';
+            container.style.width = Math.floor(deviceWidth * scale) + 'px';
+            container.style.height = Math.floor(deviceHeight * scale) + 'px';
           }
 
           goBtn.addEventListener('click', updatePreview);
