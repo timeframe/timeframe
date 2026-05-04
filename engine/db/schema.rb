@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 4) do
+ActiveRecord::Schema[8.1].define(version: 5) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -91,6 +91,7 @@ ActiveRecord::Schema[8.1].define(version: 4) do
     t.bigint "google_account_id"
     t.string "icon"
     t.datetime "last_synced_at"
+    t.bigint "microsoft_account_id"
     t.string "name", null: false
     t.string "source_type", null: false
     t.datetime "updated_at", null: false
@@ -103,6 +104,7 @@ ActiveRecord::Schema[8.1].define(version: 4) do
     t.index ["apple_account_id"], name: "index_calendars_on_apple_account_id"
     t.index ["google_account_id", "external_id"], name: "index_calendars_on_google_account_id_and_external_id", unique: true
     t.index ["google_account_id"], name: "index_calendars_on_google_account_id"
+    t.index ["microsoft_account_id"], name: "index_calendars_on_microsoft_account_id"
   end
 
   create_table "devices", force: :cascade do |t|
@@ -239,6 +241,19 @@ ActiveRecord::Schema[8.1].define(version: 4) do
     t.index ["account_id"], name: "index_locations_on_account_id"
   end
 
+  create_table "microsoft_accounts", force: :cascade do |t|
+    t.text "access_token", null: false
+    t.bigint "account_id", null: false
+    t.datetime "created_at", null: false
+    t.text "email", null: false
+    t.text "microsoft_uid", null: false
+    t.text "refresh_token", null: false
+    t.datetime "token_expires_at"
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "microsoft_uid"], name: "index_microsoft_accounts_on_account_id_and_microsoft_uid", unique: true
+    t.index ["account_id"], name: "index_microsoft_accounts_on_account_id"
+  end
+
   create_table "pending_devices", force: :cascade do |t|
     t.text "api_key"
     t.bigint "claimed_device_id"
@@ -283,9 +298,11 @@ ActiveRecord::Schema[8.1].define(version: 4) do
   add_foreign_key "calendars", "accounts"
   add_foreign_key "calendars", "apple_accounts"
   add_foreign_key "calendars", "google_accounts"
+  add_foreign_key "calendars", "microsoft_accounts"
   add_foreign_key "devices", "locations"
   add_foreign_key "google_accounts", "accounts"
   add_foreign_key "locations", "accounts"
+  add_foreign_key "microsoft_accounts", "accounts"
   add_foreign_key "pending_devices", "devices", column: "claimed_device_id"
   add_foreign_key "weather_syncs", "locations"
 end
