@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 3) do
+ActiveRecord::Schema[8.1].define(version: 4) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -32,6 +32,18 @@ ActiveRecord::Schema[8.1].define(version: 3) do
     t.string "speed_unit", default: "mph", null: false
     t.string "temperature_unit", default: "F", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "apple_accounts", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.text "app_specific_password", null: false
+    t.string "caldav_principal_url"
+    t.string "calendar_home_url"
+    t.datetime "created_at", null: false
+    t.text "email", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "email"], name: "index_apple_accounts_on_account_id_and_email", unique: true
+    t.index ["account_id"], name: "index_apple_accounts_on_account_id"
   end
 
   create_table "audit_logs", force: :cascade do |t|
@@ -71,6 +83,8 @@ ActiveRecord::Schema[8.1].define(version: 3) do
 
   create_table "calendars", force: :cascade do |t|
     t.bigint "account_id", null: false
+    t.bigint "apple_account_id"
+    t.string "caldav_url"
     t.datetime "created_at", null: false
     t.datetime "disabled_at"
     t.string "external_id"
@@ -86,6 +100,7 @@ ActiveRecord::Schema[8.1].define(version: 3) do
     t.string "webhook_resource_id"
     t.index ["account_id", "source_type", "url"], name: "index_calendars_on_account_id_and_source_type_and_url", unique: true
     t.index ["account_id"], name: "index_calendars_on_account_id"
+    t.index ["apple_account_id"], name: "index_calendars_on_apple_account_id"
     t.index ["google_account_id", "external_id"], name: "index_calendars_on_google_account_id_and_external_id", unique: true
     t.index ["google_account_id"], name: "index_calendars_on_google_account_id"
   end
@@ -262,9 +277,11 @@ ActiveRecord::Schema[8.1].define(version: 3) do
 
   add_foreign_key "account_users", "accounts"
   add_foreign_key "account_users", "users"
+  add_foreign_key "apple_accounts", "accounts"
   add_foreign_key "audit_logs", "users"
   add_foreign_key "calendar_events", "calendars"
   add_foreign_key "calendars", "accounts"
+  add_foreign_key "calendars", "apple_accounts"
   add_foreign_key "calendars", "google_accounts"
   add_foreign_key "devices", "locations"
   add_foreign_key "google_accounts", "accounts"

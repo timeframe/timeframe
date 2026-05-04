@@ -4,7 +4,7 @@ class DevicesController < ApplicationController
   skip_before_action :authenticate_user!, raise: false, only: [:confirmation_image, :show, :screenshot]
   before_action :set_account_and_location, except: [:confirmation_image, :show, :screenshot]
   before_action :authorize_device_access!, only: [:show, :screenshot]
-  layout "device", only: [:show]
+  layout "device", only: [:show, :preview]
   after_action(only: [:show, :screenshot]) { response.headers["X-Deploy-Time"] = DEPLOY_TIME.to_s }
 
   def show
@@ -25,6 +25,23 @@ class DevicesController < ApplicationController
     view_object[:configuration] = @device.try(:configuration) || {}
 
     render "devices/#{template}", locals: {view_object: view_object}, layout: params[:layout] != "false"
+  rescue => e
+    render "devices/error", locals: {klass: e.class.to_s, message: e.message, backtrace: e.backtrace}
+  end
+
+  def preview
+    device = @location.devices.find(params[:id])
+    tz = device.location&.time_zone.presence || "America/Denver"
+
+    current_time = if params[:at].present?
+      ActiveSupport::TimeZone[tz].parse(params[:at])
+    end
+
+    template = device.active_template
+    view_object = device.device_content(current_time: current_time)
+    view_object[:configuration] = device.try(:configuration) || {}
+
+    render "devices/#{template}", locals: {view_object: view_object}, layout: "device"
   rescue => e
     render "devices/error", locals: {klass: e.class.to_s, message: e.message, backtrace: e.backtrace}
   end
@@ -53,7 +70,7 @@ class DevicesController < ApplicationController
     if model == "visionect_13"
       @location.devices.create!(name: name, model: model)
       redirect_back fallback_location: root_path, notice: "Device \"#{name}\" added."
-    elsif current_user.respond_to?(:is_admin?) && current_user.is_admin? && params[:pairing_code].blank?
+    elsif current_user.is_admin? && params[:pairing_code].blank?
       @location.devices.create!(name: name, model: model, mac_address: SecureRandom.hex(6), confirmed_at: Time.current)
       redirect_back fallback_location: root_path, notice: "Device \"#{name}\" added."
     else
@@ -168,7 +185,7 @@ class DevicesController < ApplicationController
   private
 
   def set_account_and_location
-    @account = if current_user.respond_to?(:is_admin?) && current_user.is_admin?
+    @account = if current_user.is_admin?
       Account.find(params[:account_id])
     else
       current_user.accounts.find(params[:account_id])
@@ -189,7 +206,7 @@ class DevicesController < ApplicationController
 
     return render(plain: "Device not found", status: :not_found) unless @device
 
-    return if current_user&.respond_to?(:is_admin?) && current_user.is_admin?
+    return if current_user&.is_admin?
     return if current_user&.accounts&.exists?(id: @device.account&.id)
 
     if session[:device_session_token].present? && @device.session_token.present? &&

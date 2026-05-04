@@ -131,7 +131,7 @@ class Device < ActiveRecord::Base
   end
 
   # :nocov:
-  def device_content(timezone: nil)
+  def device_content(timezone: nil, current_time: nil)
     tz = timezone || location&.time_zone || "UTC"
     compact_view = %w[three_day two_day].include?(active_template)
     two_day = active_template == "two_day"
@@ -151,6 +151,7 @@ class Device < ActiveRecord::Base
       weather_row: compact_view || eight_day, start_time_only: compact_view || eight_day,
       always_show_today: two_day || eight_day
     }
+    args[:current_time] = current_time if current_time
     if demo_mode_enabled?
       DemoDeviceContent.new.call(timezone: tz, **args)
     else

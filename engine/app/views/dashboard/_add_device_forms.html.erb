@@ -21,7 +21,7 @@
         <div class="mb-3" data-pairing-code style="display: none;">
           <label class="form-label">Pairing Code</label>
           <input type="text" name="pairing_code" class="form-control" placeholder="e.g. 123456" autocomplete="off" inputmode="numeric" minlength="6" maxlength="6" pattern="[0-9]{6}" data-field="pairing">
-          <% if defined?(current_user) && current_user&.respond_to?(:is_admin?) && current_user.is_admin? %>
+          <% if defined?(current_user) && current_user&.is_admin? %>
             <small class="text-muted">Optional for admins</small>
           <% end %>
         </div>
@@ -53,7 +53,7 @@
     return modelSelect.value !== '' && modelSelect.value !== 'visionect_13';
   }
 
-  <% admin = defined?(current_user) && current_user&.respond_to?(:is_admin?) && current_user&.is_admin? %>
+  <% admin = defined?(current_user) && current_user&.is_admin? %>
   var isAdmin = <%= admin ? "true" : "false" %>;
 
   function updateState() {

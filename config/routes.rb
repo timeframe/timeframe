@@ -15,6 +15,7 @@ Rails.application.routes.draw do
       resources :devices, only: [:create, :show, :update, :destroy] do
         get :confirmation_image, on: :member
         get :screenshot, on: :member
+        get :preview, on: :member
         patch :update_template, on: :member
         patch :update_configuration, on: :member
         post :regenerate_tokens, on: :member
