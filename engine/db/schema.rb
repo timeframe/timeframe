@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 5) do
+ActiveRecord::Schema[8.1].define(version: 6) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -232,6 +232,7 @@ ActiveRecord::Schema[8.1].define(version: 5) do
 
   create_table "locations", force: :cascade do |t|
     t.bigint "account_id", null: false
+    t.string "country_code", limit: 2
     t.datetime "created_at", null: false
     t.text "latitude", null: false
     t.text "longitude", null: false

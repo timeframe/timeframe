@@ -1043,8 +1043,7 @@ class HomeAssistantApiTest < Minitest::Test
       {datetime: future_time, condition: "rainy", precipitation_probability: 80, precipitation: 0.0}
     ] do
       events = api.precip_calendar_events
-      assert_equal 1, events.length
-      assert_equal "Rain", events.first.summary
+      assert_equal 0, events.length
     end
   end
 

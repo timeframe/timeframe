@@ -530,7 +530,7 @@ class HomeAssistantApi
       end
     end
 
-    events.map do
+    events.filter_map do
       icon = (it[:precipitation_type] == "snow") ? "snowflake" : "weather-rainy"
       display_unit = if precipitation_unit == "in"
         "in"
@@ -538,11 +538,10 @@ class HomeAssistantApi
         (it[:precipitation_type] == "snow") ? "cm" : "mm"
       end
       amount = it[:precipitation_total]
-      label = if amount > 0
-        "#{it[:precipitation_type].capitalize} #{format_precipitation(amount, display_unit)}"
-      else
-        it[:precipitation_type].capitalize
-      end
+      formatted = format_precipitation(amount, display_unit)
+      next if formatted.start_with?("0.0")
+
+      label = "#{it[:precipitation_type].capitalize} #{formatted}"
 
       DeviceEvent.new(
         id: "#{it[:start_i]}_ha_precip",
