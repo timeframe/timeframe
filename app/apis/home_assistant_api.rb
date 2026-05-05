@@ -446,13 +446,31 @@ class HomeAssistantApi
       date = Date.parse(day[:datetime])
       starts = ActiveSupport::TimeZone[tz].local(date.year, date.month, date.day)
 
+      precip_parts = nil
+      precip_mm = day[:precipitation].to_f
+      if precip_mm > 0
+        condition = day[:condition]
+        is_snow = %w[snowy snowy-rainy].include?(condition)
+        target_unit = if precipitation_unit == "in"
+          "in"
+        else
+          is_snow ? "cm" : "mm"
+        end
+        precip_icon = is_snow ? "snowflake" : "weather-rainy"
+        precip_parts = [{icon: precip_icon, label: format_precipitation(convert_precipitation(precip_mm, target_unit), target_unit)}]
+      end
+
+      day_icon = icon_for(day[:condition])
+      precip_parts&.each { |p| p[:icon] = nil if p[:icon] == day_icon }
+
       DeviceEvent.new(
         id: "_ha_weather_day_#{starts.to_i}",
         starts_at: starts.to_i,
         ends_at: (starts + 1.day).to_i,
         timezone: tz,
         icon: icon_for(day[:condition]),
-        summary: "#{convert_temperature(day[:temperature])}° / #{convert_temperature(day[:templow])}°"
+        summary: "#{convert_temperature(day[:temperature])}° / #{convert_temperature(day[:templow])}°",
+        precip: precip_parts
       )
     end
   end

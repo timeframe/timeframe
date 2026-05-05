@@ -872,6 +872,56 @@ class HomeAssistantApiTest < Minitest::Test
     end
   end
 
+  def test_daily_calendar_events_with_rain_precip
+    api = HomeAssistantApi.new
+    api.stub :daily_forecast, [
+      {datetime: "2023-08-27T06:00:00Z", condition: "rainy", temperature: 65, templow: 50, precipitation: 5.0}
+    ] do
+      events = api.daily_calendar_events
+      assert_equal 1, events.length
+      assert_equal 1, events.first.precip.length
+      # rainy maps to weather-rainy which matches precip icon — should be suppressed
+      assert_nil events.first.precip.first[:icon]
+      assert_includes events.first.precip.first[:label], "\""
+    end
+  end
+
+  def test_daily_calendar_events_with_snow_precip
+    api = HomeAssistantApi.new
+    api.stub :daily_forecast, [
+      {datetime: "2023-08-27T06:00:00Z", condition: "snowy", temperature: 30, templow: 20, precipitation: 10.0}
+    ] do
+      events = api.daily_calendar_events
+      assert_equal 1, events.length
+      assert_equal 1, events.first.precip.length
+      assert_includes events.first.precip.first[:label], "\""
+    end
+  end
+
+  def test_daily_calendar_events_with_snow_precip_metric
+    config = TimeframeConfig.new(precipitation_unit: "mm")
+    api = HomeAssistantApi.new(config)
+    api.stub :daily_forecast, [
+      {datetime: "2023-08-27T06:00:00Z", condition: "snowy", temperature: -1, templow: -5, precipitation: 10.0}
+    ] do
+      events = api.daily_calendar_events
+      assert_equal 1, events.length
+      assert_equal 1, events.first.precip.length
+      assert_includes events.first.precip.first[:label], "cm"
+    end
+  end
+
+  def test_daily_calendar_events_no_precip_when_zero
+    api = HomeAssistantApi.new
+    api.stub :daily_forecast, [
+      {datetime: "2023-08-27T06:00:00Z", condition: "sunny", temperature: 90, templow: 65, precipitation: 0.0}
+    ] do
+      events = api.daily_calendar_events
+      assert_equal 1, events.length
+      assert_nil events.first.precip
+    end
+  end
+
   def test_precip_calendar_events_returns_empty_when_no_data
     api = HomeAssistantApi.new
     assert_equal [], api.precip_calendar_events

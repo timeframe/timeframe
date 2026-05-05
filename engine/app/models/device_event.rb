@@ -1,7 +1,7 @@
 class DeviceEvent
   DAY_IN_SECONDS = 86_400
 
-  attr_reader :id, :starts_at, :ends_at, :multi_day, :location, :icon_rotation, :attachment_image, :kids_icon
+  attr_reader :id, :starts_at, :ends_at, :multi_day, :location, :icon_rotation, :attachment_image, :kids_icon, :precip
   attr_accessor :icon
 
   def initialize(
@@ -15,10 +15,19 @@ class DeviceEvent
     location: nil,
     daily: false,
     attachment_image: nil,
+    precip_icon: nil,
+    precip_label: nil,
+    precip: nil,
     id: SecureRandom.hex
   )
     @id, @icon, @icon_rotation, @summary, @description, @location, @daily, @timezone, @attachment_image =
       id, icon, icon_rotation, summary.gsub(/[^a-zA-Z0-9.\-"\  _°\/\\&:+,?()<>'@#\u2019]/, ""), description, location, daily, timezone, attachment_image
+
+    @precip = if precip
+      precip
+    elsif precip_icon
+      [{icon: precip_icon, label: precip_label}]
+    end
 
     @kids_icon = @description&.match(/timeframe-kids-icon:(\S+)/)&.captures&.first
 
@@ -163,7 +172,8 @@ class DeviceEvent
       time_html: time.to_s,
       start_time: start_time,
       attachment_image: attachment_image,
-      kids_icon: kids_icon
+      kids_icon: kids_icon,
+      precip: precip
     }
   end
 end

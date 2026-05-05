@@ -477,4 +477,38 @@ class DeviceEventTest < Minitest::Test
     assert_equal("Sunday Service", event.summary)
     assert_equal("church", event.kids_icon)
   end
+
+  def test_precip_from_precip_icon_and_label
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "72° / 45°",
+      precip_icon: "weather-rainy",
+      precip_label: "0.5\""
+    )
+
+    assert_equal [{icon: "weather-rainy", label: "0.5\""}], event.precip
+  end
+
+  def test_precip_from_precip_array
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "72° / 45°",
+      precip: [{icon: "snowflake", label: "3.0\""}, {icon: "weather-rainy", label: "0.5\""}]
+    )
+
+    assert_equal 2, event.precip.length
+    assert_equal "snowflake", event.precip.first[:icon]
+  end
+
+  def test_precip_nil_when_not_provided
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "72° / 45°"
+    )
+
+    assert_nil event.precip
+  end
 end
