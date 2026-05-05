@@ -922,6 +922,39 @@ class HomeAssistantApiTest < Minitest::Test
     end
   end
 
+  def test_daily_calendar_events_with_wind_gust_above_threshold
+    tomorrow = 1.day.from_now.utc.beginning_of_day
+    api = HomeAssistantApi.new
+    api.stub :daily_forecast, [
+      {datetime: tomorrow.iso8601, condition: "sunny", temperature: 75, templow: 55}
+    ] do
+      api.stub :hourly_forecast, [
+        {datetime: tomorrow.iso8601, wind_gust_speed: 25},
+        {datetime: (tomorrow + 6.hours).iso8601, wind_gust_speed: 35}
+      ] do
+        events = api.daily_calendar_events
+        assert_equal 1, events.length
+        assert_equal "35mph", events.first.wind_gust
+      end
+    end
+  end
+
+  def test_daily_calendar_events_no_wind_gust_below_threshold
+    tomorrow = 1.day.from_now.utc.beginning_of_day
+    api = HomeAssistantApi.new
+    api.stub :daily_forecast, [
+      {datetime: tomorrow.iso8601, condition: "sunny", temperature: 75, templow: 55}
+    ] do
+      api.stub :hourly_forecast, [
+        {datetime: tomorrow.iso8601, wind_gust_speed: 15}
+      ] do
+        events = api.daily_calendar_events
+        assert_equal 1, events.length
+        assert_nil events.first.wind_gust
+      end
+    end
+  end
+
   def test_precip_calendar_events_returns_empty_when_no_data
     api = HomeAssistantApi.new
     assert_equal [], api.precip_calendar_events

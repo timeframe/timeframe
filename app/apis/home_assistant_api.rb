@@ -406,6 +406,21 @@ class HomeAssistantApi
     (speed_unit == "kph") ? 32.0 : 20.0
   end
 
+  def daily_max_gust(day_start, day_end)
+    hours = hourly_forecast
+    return nil unless hours.present?
+
+    max_gust = 0.0
+    hours.each do |hour|
+      hour_i = DateTime.parse(hour[:datetime]).to_i
+      next unless hour_i >= day_start && hour_i < day_end
+      gust = convert_speed(hour[:wind_gust_speed])
+      max_gust = gust if gust > max_gust
+    end
+
+    (max_gust >= wind_gust_threshold) ? "#{max_gust.round}#{speed_unit}" : nil
+  end
+
   def hourly_calendar_events
     today = Date.today.in_time_zone(time_zone)
     hours = hourly_forecast
@@ -463,6 +478,8 @@ class HomeAssistantApi
       day_icon = icon_for(day[:condition])
       precip_parts&.each { |p| p[:icon] = nil if p[:icon] == day_icon }
 
+      max_gust = daily_max_gust(starts.to_i, (starts + 1.day).to_i)
+
       DeviceEvent.new(
         id: "_ha_weather_day_#{starts.to_i}",
         starts_at: starts.to_i,
@@ -470,7 +487,8 @@ class HomeAssistantApi
         timezone: tz,
         icon: icon_for(day[:condition]),
         summary: "#{convert_temperature(day[:temperature])}° / #{convert_temperature(day[:templow])}°",
-        precip: precip_parts
+        precip: precip_parts,
+        wind_gust: max_gust
       )
     end
   end

@@ -15,7 +15,7 @@
               </td>
               <td>
                 <div>
-                  <%= event[:summary] %><% if event[:precip] %><% event[:precip].each do |p| %> / <% if p[:icon] %><i class="mdi mdi-<%= p[:icon] %>"></i> <% end %><%= p[:label] %><% end %><% end %>
+                  <%= event[:summary] %><% if event[:precip] %><% event[:precip].each do |p| %> / <% if p[:icon] %><i class="mdi mdi-<%= p[:icon] %>"></i> <% end %><%= p[:label] %><% end %><% end %><% if event[:wind_gust] %> / <i class="mdi mdi-weather-windy"></i> <%= event[:wind_gust] %><% end %>
                   <div style="font-size: .5rem;"><%= event[:location] %></div>
                 </div>
               </td>
