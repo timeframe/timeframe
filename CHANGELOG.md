@@ -1,3 +1,21 @@
+## [2.10.0] - 2026-05-05
+
+### Added
+- Eight-day 1080p display template
+- Battery level display on device cards
+- Daily precipitation totals (rain/snow) shown on daily weather summary with icons
+- Daily max wind gust shown on weather summary when ≥ 20mph
+
+### Changed
+- Pairing page moved to `/pair`
+
+### Fixed
+- Two-day template alignment; allow hiding dates via device configuration
+- Image outline on calendar event attachments
+- Realtime display refresh handling improvements
+- Precip events with negligible amounts (rounding to 0.0) are no longer shown
+- Fixed daily precipitation calculation for snow (snowfallAmount is depth, not liquid equivalent)
+
 ## [2.9.6] - 2026-04-29
 
 ### Fixed
