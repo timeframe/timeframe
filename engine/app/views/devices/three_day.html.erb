@@ -39,24 +39,29 @@
         <% end %>
 
         <% if day[:show_daily] && day[:daily].any? %>
-          <div class="three-day-events">
-            <% day[:daily].select { |e| e[:attachment_image] }.each do |event| %>
-                <table><tr>
-                  <td class="three-day-event-summary"><%= event[:summary] %></td>
-                </tr></table>
-            <% end %>
-          </div>
+          <% daily_images = day[:daily].select { |e| e[:attachment_image] } %>
+          <% if daily_images.any? %>
+            <div class="three-day-events">
+              <table>
+                <% daily_images.each do |event| %>
+                  <tr><td class="three-day-event-summary"><%= event[:summary] %></td></tr>
+                <% end %>
+              </table>
+            </div>
+          <% end %>
         <% end %>
 
         <% visual_periodic = day[:periodic].select { |e| e[:attachment_image] } %>
         <% if visual_periodic.any? %>
           <div class="three-day-events">
-            <% visual_periodic.each do |event| %>
-                <table><tr>
+            <table>
+              <% visual_periodic.each do |event| %>
+                <tr>
                   <td style="white-space: nowrap; font-size: .85rem; padding: 0 .35rem 0 0; width: 1%;"><%= event[:start_time] %></td>
                   <td class="three-day-event-summary"><%= event[:summary] %></td>
-                </tr></table>
-            <% end %>
+                </tr>
+              <% end %>
+            </table>
           </div>
         <% end %>
       </div>

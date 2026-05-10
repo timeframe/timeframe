@@ -44,38 +44,43 @@
         <% end %>
 
         <% if day[:show_daily] && day[:daily].any? %>
-          <div class="two-day-events">
-            <% day[:daily].select { |e| e[:attachment_image] || e[:kids_icon] }.each do |event| %>
-              <% if event[:kids_icon] %>
-                <div class="two-day-kids-event">
-                  <i class="mdi mdi-<%= event[:kids_icon] %> two-day-kids-icon"></i>
-                  <span class="two-day-kids-summary"><%= event[:summary] %></span>
-                </div>
-              <% else %>
-                <table><tr>
-                  <td class="two-day-event-summary"><%= event[:summary] %></td>
-                </tr></table>
-              <% end %>
-            <% end %>
-          </div>
+          <% daily_visual = day[:daily].select { |e| e[:attachment_image] || e[:kids_icon] } %>
+          <% daily_visual.select { |e| e[:kids_icon] }.each do |event| %>
+            <div class="two-day-kids-event">
+              <i class="mdi mdi-<%= event[:kids_icon] %> two-day-kids-icon"></i>
+              <span class="two-day-kids-summary"><%= event[:summary] %></span>
+            </div>
+          <% end %>
+          <% daily_text = daily_visual.reject { |e| e[:kids_icon] } %>
+          <% if daily_text.any? %>
+            <div class="two-day-events">
+              <table>
+                <% daily_text.each do |event| %>
+                  <tr><td class="two-day-event-summary"><%= event[:summary] %></td></tr>
+                <% end %>
+              </table>
+            </div>
+          <% end %>
         <% end %>
 
         <% visual_periodic = day[:periodic].select { |e| e[:attachment_image] || e[:kids_icon] } %>
-        <% if visual_periodic.any? %>
+        <% visual_periodic.select { |e| e[:kids_icon] }.each do |event| %>
+          <div class="two-day-kids-event">
+            <i class="mdi mdi-<%= event[:kids_icon] %> two-day-kids-icon"></i>
+            <span class="two-day-kids-summary"><%= event[:summary] %></span>
+          </div>
+        <% end %>
+        <% periodic_text = visual_periodic.reject { |e| e[:kids_icon] } %>
+        <% if periodic_text.any? %>
           <div class="two-day-events">
-            <% visual_periodic.each do |event| %>
-              <% if event[:kids_icon] %>
-                <div class="two-day-kids-event">
-                  <i class="mdi mdi-<%= event[:kids_icon] %> two-day-kids-icon"></i>
-                  <span class="two-day-kids-summary"><%= event[:summary] %></span>
-                </div>
-              <% else %>
-                <table><tr>
+            <table>
+              <% periodic_text.each do |event| %>
+                <tr>
                   <td style="white-space: nowrap; font-size: .85rem; padding: 0 .35rem 0 0; width: 1%;"><%= event[:start_time] %></td>
                   <td class="two-day-event-summary"><%= event[:summary] %></td>
-                </tr></table>
+                </tr>
               <% end %>
-            <% end %>
+            </table>
           </div>
         <% end %>
       </div>
