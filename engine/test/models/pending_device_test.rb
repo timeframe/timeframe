@@ -42,4 +42,17 @@ class PendingDeviceTest < Minitest::Test
     assert_nil PendingDevice.find_active_by_code(pd.pairing_code)
     refute PendingDevice.exists?(pd.id)
   end
+
+  def test_refresh_generates_new_code_and_resets_created_at
+    pd = PendingDevice.create!
+    old_code = pd.pairing_code
+    pd.update_column(:created_at, 20.minutes.ago)
+    assert pd.expired?
+
+    pd.refresh!
+    pd.reload
+
+    refute pd.expired?
+    refute_equal old_code, pd.pairing_code
+  end
 end

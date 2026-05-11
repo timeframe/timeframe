@@ -33,6 +33,8 @@ module Api
         pd.friendly_id = SecureRandom.alphanumeric(6).upcase
       end
 
+      pending.refresh! if pending.expired?
+
       render json: {
         status: 200,
         api_key: pending.api_key,

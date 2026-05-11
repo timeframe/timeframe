@@ -21,6 +21,13 @@ class PendingDevice < ActiveRecord::Base
     created_at < EXPIRY_DURATION.ago
   end
 
+  def refresh!
+    update!(
+      pairing_code: SecureRandom.random_number(1_000_000).to_s.rjust(6, "0"),
+      created_at: Time.current
+    )
+  end
+
   def self.find_active_by_code(code)
     device = find_by(pairing_code: code)
     return nil unless device
