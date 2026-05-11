@@ -23,7 +23,6 @@ module Api
           status: 200,
           api_key: device.api_key,
           friendly_id: device.friendly_id,
-          image_url: nil,
           message: "Welcome to Timeframe"
         }
         return
@@ -38,7 +37,6 @@ module Api
         status: 200,
         api_key: pending.api_key,
         friendly_id: pending.pairing_code,
-        image_url: nil,
         message: "Enter this code at timeframe.app"
       }
     end
