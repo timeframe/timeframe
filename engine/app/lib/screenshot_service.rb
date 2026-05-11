@@ -15,9 +15,9 @@ class ScreenshotService
         png_base64 = capture_screenshot(url, width: width, height: height)
       end
 
-      return png_base64 if raw
-
-      if grayscale_only
+      result = if raw
+        png_base64
+      elsif grayscale_only
         image = MiniMagick::Image.read(Base64.decode64(png_base64), ".png")
         image.rotate "90"
         image.combine_options do |c|
@@ -27,10 +27,14 @@ class ScreenshotService
           c.depth 4
         end
         image.format "png"
-        return Base64.strict_encode64(image.to_blob)
+        Base64.strict_encode64(image.to_blob)
+      else
+        process_image(Base64.decode64(png_base64), grayscale_depth: grayscale_depth, rotate: rotate, dither: dither)
       end
 
-      process_image(Base64.decode64(png_base64), grayscale_depth: grayscale_depth, rotate: rotate, dither: dither)
+      quit_idle_browser!
+
+      result
     end
 
     def browser
@@ -54,6 +58,13 @@ class ScreenshotService
       @browser = nil
     end
 
+    def quit_idle_browser!
+      return unless @browser
+      return if @last_screenshot_at && @last_screenshot_at > 2.minutes.ago
+
+      reset!
+    end
+
     private
 
     def capture_screenshot(url, width:, height:)
@@ -66,6 +77,7 @@ class ScreenshotService
       page.go_to(url)
       png_base64 = page.screenshot(format: "png")
       page.close
+      @last_screenshot_at = Time.current
       png_base64
     end
 

@@ -223,9 +223,13 @@ class Device < ActiveRecord::Base
     end
   end
 
-  def self.enqueue_screenshot_refresh_jobs!
-    where(model: SCREENSHOTTED_MODELS).find_each do |device|
-      RefreshDeviceScreenshotJob.perform_later(device.id)
+  def self.enqueue_screenshot_refresh_jobs!(stagger: false)
+    where(model: SCREENSHOTTED_MODELS).find_each.with_index do |device, index|
+      if stagger
+        RefreshDeviceScreenshotJob.set(wait: (index * 30).seconds).perform_later(device.id)
+      else
+        RefreshDeviceScreenshotJob.perform_later(device.id)
+      end
     end
   rescue ActiveRecord::ConnectionNotEstablished, ActiveRecord::StatementInvalid
     # DB not available (e.g. during asset precompilation) or tables not yet created
