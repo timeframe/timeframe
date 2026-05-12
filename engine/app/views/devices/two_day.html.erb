@@ -43,8 +43,9 @@
           </div>
         <% end %>
 
+        <% show_all = view_object.dig(:configuration, "show_all_events") == "true" %>
         <% if day[:show_daily] && day[:daily].any? %>
-          <% daily_visual = day[:daily].select { |e| e[:attachment_image] || e[:kids_icon] } %>
+          <% daily_visual = show_all ? day[:daily] : day[:daily].select { |e| e[:attachment_image] || e[:kids_icon] } %>
           <% daily_visual.select { |e| e[:kids_icon] }.each do |event| %>
             <div class="two-day-kids-event">
               <i class="mdi mdi-<%= event[:kids_icon] %> two-day-kids-icon"></i>
@@ -63,7 +64,7 @@
           <% end %>
         <% end %>
 
-        <% visual_periodic = day[:periodic].select { |e| e[:attachment_image] || e[:kids_icon] } %>
+        <% visual_periodic = show_all ? day[:periodic] : day[:periodic].select { |e| e[:attachment_image] || e[:kids_icon] } %>
         <% visual_periodic.select { |e| e[:kids_icon] }.each do |event| %>
           <div class="two-day-kids-event">
             <i class="mdi mdi-<%= event[:kids_icon] %> two-day-kids-icon"></i>

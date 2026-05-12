@@ -38,8 +38,9 @@
           </div>
         <% end %>
 
+        <% show_all = view_object.dig(:configuration, "show_all_events") == "true" %>
         <% if day[:show_daily] && day[:daily].any? %>
-          <% daily_images = day[:daily].select { |e| e[:attachment_image] } %>
+          <% daily_images = show_all ? day[:daily] : day[:daily].select { |e| e[:attachment_image] } %>
           <% if daily_images.any? %>
             <div class="three-day-events">
               <table>
@@ -51,7 +52,7 @@
           <% end %>
         <% end %>
 
-        <% visual_periodic = day[:periodic].select { |e| e[:attachment_image] } %>
+        <% visual_periodic = show_all ? day[:periodic] : day[:periodic].select { |e| e[:attachment_image] } %>
         <% if visual_periodic.any? %>
           <div class="three-day-events">
             <table>
