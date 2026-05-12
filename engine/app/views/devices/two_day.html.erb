@@ -12,10 +12,10 @@
   .two-day-weather-temp { font-size: 1rem; }
   .two-day-events { font-size: 1.25rem; overflow: hidden; }
   .two-day-events table { width: 100%; border-collapse: collapse; }
-  .two-day-events td { padding: .05rem 0; }
+  .two-day-events td { padding: .15rem 0; }
   .two-day-events td:first-child { text-align: right; }
   .two-day-event-icon { width: 1rem; text-align: center; font-size: .85rem; font-weight: bold; }
-  .two-day-event-summary { text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+  .two-day-event-summary { overflow-wrap: break-word; word-wrap: break-word; }
   .two-day-kids-event { display: flex; flex-direction: column; align-items: center; padding: .25rem 0; }
   .two-day-kids-icon { font-size: 10rem; line-height: 1; }
   .two-day-kids-summary { font-size: 1.5rem; text-align: center; }
@@ -82,7 +82,18 @@
               <% end %>
               <% periodic_text.each do |event| %>
                 <tr>
-                  <td style="white-space: nowrap; font-size: .85rem; padding: 0 .35rem 0 0; width: 1%;"><%= event[:start_time] %></td>
+                  <td style="white-space: nowrap; font-size: .85rem; padding: 0 .35rem 0 0; width: 1%;">
+                    <% if event[:weather_ranged] %>
+                      <% parts = event[:time_html].split(" - ", 2) %>
+                      <% if parts.length == 2 && event[:time_html].match?(/[A-Z]/) %>
+                        <%= parts[0] %><br><%= parts[1] %>
+                      <% else %>
+                        <%= event[:time_html] %>
+                      <% end %>
+                    <% else %>
+                      <%= event[:start_time] %>
+                    <% end %>
+                  </td>
                   <td class="two-day-event-summary"><%= event[:summary] %></td>
                 </tr>
               <% end %>

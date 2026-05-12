@@ -107,6 +107,10 @@ class DeviceEvent
     start_i == end_i && weather?
   end
 
+  def weather_ranged?
+    id.to_s.match?(/_(precip|wind|alert)/) && start_i != end_i
+  end
+
   def start_time
     start = Time.at(start_i).in_time_zone(@timezone)
     label = start.min.positive? ? start.strftime("%-l:%M") : start.strftime("%-l")
@@ -176,6 +180,7 @@ class DeviceEvent
       location: location,
       time_html: time.to_s,
       start_time: start_time,
+      weather_ranged: weather_ranged?,
       attachment_image: attachment_image,
       kids_icon: kids_icon,
       precip: precip,
