@@ -150,7 +150,8 @@ class Device < ActiveRecord::Base
       include_precip: !compact_view && !eight_day || show_all, include_wind: !compact_view && !eight_day || show_all,
       use_day_names: compact_view || eight_day, include_daily_weather: !compact_view && !eight_day,
       weather_row: compact_view || eight_day, start_time_only: compact_view || eight_day,
-      always_show_today: compact_view || eight_day
+      always_show_today: compact_view || eight_day,
+      clothing_forecast: compact_view && configuration&.dig("clothing_forecast") == "true"
     }
     args[:current_time] = current_time if current_time
     if demo_mode_enabled?

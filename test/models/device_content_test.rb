@@ -289,4 +289,94 @@ class DeviceContenttTest < Minitest::Test
       end
     end
   end
+
+  def test_clothing_forecast_shorts_when_warm
+    travel_to DateTime.new(2023, 8, 27, 7, 0, 0, "-0600") do
+      api = new_test_api
+      tz = "America/Denver"
+      weather_events = [
+        DeviceEvent.new(id: "_ha_weather_hour_1", starts_at: DateTime.new(2023, 8, 27, 8, 0, 0, "-0600"), ends_at: DateTime.new(2023, 8, 27, 8, 0, 0, "-0600"), summary: "72°", icon: "weather-sunny", timezone: tz),
+        DeviceEvent.new(id: "_ha_weather_hour_2", starts_at: DateTime.new(2023, 8, 27, 12, 0, 0, "-0600"), ends_at: DateTime.new(2023, 8, 27, 12, 0, 0, "-0600"), summary: "85°", icon: "weather-sunny", timezone: tz),
+        DeviceEvent.new(id: "_ha_weather_hour_3", starts_at: DateTime.new(2023, 8, 27, 16, 0, 0, "-0600"), ends_at: DateTime.new(2023, 8, 27, 16, 0, 0, "-0600"), summary: "80°", icon: "weather-sunny", timezone: tz)
+      ]
+      api.stub :calendars_healthy?, false do
+        api.stub :private_mode?, false do
+          api.stub :calendar_events, weather_events do
+            result = DeviceContent.new.call(home_assistant_api: api, weather_row: true, clothing_forecast: true, always_show_today: true)
+
+            today = result[:day_groups].find { |d| d[:day_name] == "Today" }
+            assert_equal "Shorts", today[:clothing][:summary]
+            assert_equal "shorts", today[:clothing][:icon]
+          end
+        end
+      end
+    end
+  end
+
+  def test_clothing_forecast_pants_when_cold
+    travel_to DateTime.new(2023, 8, 27, 7, 0, 0, "-0600") do
+      api = new_test_api
+      tz = "America/Denver"
+      weather_events = [
+        DeviceEvent.new(id: "_ha_weather_hour_1", starts_at: DateTime.new(2023, 8, 27, 8, 0, 0, "-0600"), ends_at: DateTime.new(2023, 8, 27, 8, 0, 0, "-0600"), summary: "45°", icon: "weather-cloudy", timezone: tz),
+        DeviceEvent.new(id: "_ha_weather_hour_2", starts_at: DateTime.new(2023, 8, 27, 12, 0, 0, "-0600"), ends_at: DateTime.new(2023, 8, 27, 12, 0, 0, "-0600"), summary: "55°", icon: "weather-cloudy", timezone: tz),
+        DeviceEvent.new(id: "_ha_weather_hour_3", starts_at: DateTime.new(2023, 8, 27, 16, 0, 0, "-0600"), ends_at: DateTime.new(2023, 8, 27, 16, 0, 0, "-0600"), summary: "50°", icon: "weather-cloudy", timezone: tz)
+      ]
+      api.stub :calendars_healthy?, false do
+        api.stub :private_mode?, false do
+          api.stub :calendar_events, weather_events do
+            result = DeviceContent.new.call(home_assistant_api: api, weather_row: true, clothing_forecast: true, always_show_today: true)
+
+            today = result[:day_groups].find { |d| d[:day_name] == "Today" }
+            assert_equal "Pants", today[:clothing][:summary]
+            assert_equal "pants", today[:clothing][:icon]
+          end
+        end
+      end
+    end
+  end
+
+  def test_clothing_forecast_celsius
+    travel_to DateTime.new(2023, 8, 27, 7, 0, 0, "-0600") do
+      api = new_test_api(TimeframeConfig.new(temperature_unit: "C"))
+      tz = "America/Denver"
+      weather_events = [
+        DeviceEvent.new(id: "_ha_weather_hour_1", starts_at: DateTime.new(2023, 8, 27, 8, 0, 0, "-0600"), ends_at: DateTime.new(2023, 8, 27, 8, 0, 0, "-0600"), summary: "20°", icon: "weather-sunny", timezone: tz),
+        DeviceEvent.new(id: "_ha_weather_hour_2", starts_at: DateTime.new(2023, 8, 27, 12, 0, 0, "-0600"), ends_at: DateTime.new(2023, 8, 27, 12, 0, 0, "-0600"), summary: "25°", icon: "weather-sunny", timezone: tz),
+        DeviceEvent.new(id: "_ha_weather_hour_3", starts_at: DateTime.new(2023, 8, 27, 16, 0, 0, "-0600"), ends_at: DateTime.new(2023, 8, 27, 16, 0, 0, "-0600"), summary: "22°", icon: "weather-sunny", timezone: tz)
+      ]
+      api.stub :calendars_healthy?, false do
+        api.stub :private_mode?, false do
+          api.stub :calendar_events, weather_events do
+            result = DeviceContent.new.call(home_assistant_api: api, weather_row: true, clothing_forecast: true, always_show_today: true)
+
+            today = result[:day_groups].find { |d| d[:day_name] == "Today" }
+            assert_equal "Shorts", today[:clothing][:summary]
+          end
+        end
+      end
+    end
+  end
+
+  def test_clothing_forecast_nil_when_disabled
+    travel_to DateTime.new(2023, 8, 27, 7, 0, 0, "-0600") do
+      api = new_test_api
+      tz = "America/Denver"
+      weather_events = [
+        DeviceEvent.new(id: "_ha_weather_hour_1", starts_at: DateTime.new(2023, 8, 27, 8, 0, 0, "-0600"), ends_at: DateTime.new(2023, 8, 27, 8, 0, 0, "-0600"), summary: "72°", icon: "weather-sunny", timezone: tz),
+        DeviceEvent.new(id: "_ha_weather_hour_2", starts_at: DateTime.new(2023, 8, 27, 12, 0, 0, "-0600"), ends_at: DateTime.new(2023, 8, 27, 12, 0, 0, "-0600"), summary: "85°", icon: "weather-sunny", timezone: tz),
+        DeviceEvent.new(id: "_ha_weather_hour_3", starts_at: DateTime.new(2023, 8, 27, 16, 0, 0, "-0600"), ends_at: DateTime.new(2023, 8, 27, 16, 0, 0, "-0600"), summary: "80°", icon: "weather-sunny", timezone: tz)
+      ]
+      api.stub :calendars_healthy?, false do
+        api.stub :private_mode?, false do
+          api.stub :calendar_events, weather_events do
+            result = DeviceContent.new.call(home_assistant_api: api, weather_row: true, clothing_forecast: false, always_show_today: true)
+
+            today = result[:day_groups].find { |d| d[:day_name] == "Today" }
+            assert_nil today[:clothing]
+          end
+        end
+      end
+    end
+  end
 end

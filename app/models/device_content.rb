@@ -13,7 +13,8 @@ class DeviceContent
     weather_row: false,
     start_time_only: false,
     always_show_today: false,
-    start_offset: 0
+    start_offset: 0,
+    clothing_forecast: false
   )
     current_time ||= Time.now.utc.in_time_zone(home_assistant_api.time_zone)
 
@@ -36,6 +37,10 @@ class DeviceContent
     end
 
     raw_events = []
+
+    clothing_threshold = if clothing_forecast
+      (home_assistant_api.temperature_unit == "C") ? 18 : 55
+    end
 
     if home_assistant_api.weather_healthy?
       raw_events << home_assistant_api.hourly_calendar_events
@@ -97,6 +102,7 @@ class DeviceContent
 
         periodic_events = events[:periodic]
         weather_row_data = nil
+        clothing_data = nil
 
         if weather_row
           if day_index <= 0
@@ -114,6 +120,14 @@ class DeviceContent
           periodic_events = periodic_events.reject(&:weather?)
           weather_events = weather_events.select { |e| e.weather_hourly? && [8, 12, 16].include?(e.starts_at.hour) }
           weather_row_data = weather_events.map { |e| e.as_json(date: date.to_date) }
+
+          if clothing_forecast && clothing_threshold
+            morning = weather_events.find { |e| e.starts_at.hour == 8 }
+            if morning
+              temp = morning.summary.to_i
+              clothing_data = {icon: (temp >= clothing_threshold) ? "shorts" : "pants", summary: (temp >= clothing_threshold) ? "Shorts" : "Pants"}
+            end
+          end
         end
 
         {
@@ -122,7 +136,8 @@ class DeviceContent
           show_daily: show_daily,
           daily: events[:daily].map { |e| e.as_json(date: date.to_date) },
           periodic: periodic_events.map { |e| e.as_json(date: date.to_date) },
-          weather_row: weather_row_data
+          weather_row: weather_row_data,
+          clothing: clothing_data
         }
       end.compact
 

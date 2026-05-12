@@ -226,4 +226,14 @@ class DemoDeviceContentTest < Minitest::Test
       assert result[:start_time_only]
     end
   end
+
+  def test_clothing_forecast
+    travel_to DateTime.new(2026, 3, 19, 8, 0, 0, "-0500") do
+      result = DemoDeviceContent.new.call(timezone: "America/Chicago", weather_row: true, clothing_forecast: true)
+
+      today = result[:day_groups][0]
+      assert today[:clothing], "Expected clothing forecast data"
+      assert %w[shorts pants].include?(today[:clothing][:icon])
+    end
+  end
 end

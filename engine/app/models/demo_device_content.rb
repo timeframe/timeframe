@@ -3,7 +3,7 @@
 class DemoDeviceContent
   def call(timezone: "UTC", current_time: nil, days: 5, include_precip: true, include_wind: true,
     use_day_names: false, include_daily_weather: true, weather_row: false, start_time_only: false,
-    always_show_today: false, start_offset: 0)
+    always_show_today: false, start_offset: 0, clothing_forecast: false)
     current_time ||= Time.now.utc.in_time_zone(timezone)
 
     out = {}
@@ -58,7 +58,7 @@ class DemoDeviceContent
     out[:private_mode] = false
 
     out[:day_groups] = build_day_groups(current_time, timezone, days: days, include_wind: include_wind,
-      use_day_names: use_day_names, weather_row: weather_row, start_offset: start_offset)
+      use_day_names: use_day_names, weather_row: weather_row, start_offset: start_offset, clothing_forecast: clothing_forecast)
     out[:start_time_only] = start_time_only
 
     out
@@ -66,7 +66,7 @@ class DemoDeviceContent
 
   private
 
-  def build_day_groups(current_time, timezone, days: 5, include_wind: true, use_day_names: false, weather_row: false, start_offset: 0)
+  def build_day_groups(current_time, timezone, days: 5, include_wind: true, use_day_names: false, weather_row: false, start_offset: 0, clothing_forecast: false)
     today = current_time.to_date
     tz = ActiveSupport::TimeZone[timezone]
     vacation = DeviceEvent.new(
@@ -96,11 +96,20 @@ class DemoDeviceContent
 
       periodic_events = events[:periodic]
       weather_row_data = nil
+      clothing_data = nil
 
       if weather_row
         weather_events, periodic_events = periodic_events.partition(&:weather?)
         weather_events = weather_events.select { |e| e.weather_hourly? && [8, 12, 16].include?(e.starts_at.hour) }
         weather_row_data = weather_events.map { |e| e.as_json(date: date.to_date) }
+
+        if clothing_forecast
+          morning = weather_events.find { |e| e.starts_at.hour == 8 }
+          if morning
+            temp = morning.summary.to_i
+            clothing_data = {icon: (temp >= 65) ? "shorts" : "pants", summary: (temp >= 65) ? "Shorts" : "Pants"}
+          end
+        end
       end
 
       {
@@ -109,7 +118,8 @@ class DemoDeviceContent
         show_daily: show_daily,
         daily: events[:daily].map { |e| e.as_json(date: date.to_date) },
         periodic: periodic_events.map { |e| e.as_json(date: date.to_date) },
-        weather_row: weather_row_data
+        weather_row: weather_row_data,
+        clothing: clothing_data
       }
     end
   end
@@ -131,6 +141,15 @@ class DemoDeviceContent
       )
 
       daily << vacation
+
+      periodic << DeviceEvent.new(
+        id: "_ha_weather_hour_#{date.change(hour: 8).to_i}",
+        starts_at: date.change(hour: 8),
+        ends_at: date.change(hour: 8),
+        summary: "58°",
+        icon: "weather-partly-cloudy",
+        timezone: timezone
+      )
 
       periodic << DeviceEvent.new(
         starts_at: date.change(hour: 8),

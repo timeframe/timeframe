@@ -14,3 +14,4 @@ coverage/*
 timeframe_ha_development*
 /.ruby-lsp
 Gemfile.lock
+vendor/bundle/*

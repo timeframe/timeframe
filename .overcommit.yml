@@ -5,6 +5,8 @@ PreCommit:
   RailsTest:
     enabled: true
     command: ['bundle', 'exec', 'rake', 'test']
+
+PrePush:
   DockerBuild:
     enabled: true
     command: ['./script/test-docker-build']

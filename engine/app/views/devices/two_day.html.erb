@@ -13,11 +13,16 @@
   .two-day-events { font-size: 1.25rem; overflow: hidden; }
   .two-day-events table { width: 100%; border-collapse: collapse; }
   .two-day-events td { padding: .05rem 0; }
+  .two-day-events td:first-child { text-align: right; }
   .two-day-event-icon { width: 1rem; text-align: center; font-size: .85rem; font-weight: bold; }
   .two-day-event-summary { text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
   .two-day-kids-event { display: flex; flex-direction: column; align-items: center; padding: .25rem 0; }
   .two-day-kids-icon { font-size: 10rem; line-height: 1; }
   .two-day-kids-summary { font-size: 1.5rem; text-align: center; }
+  .two-day-clothing { text-align: center; font-size: 1.25rem; margin-bottom: .25rem; }
+  .two-day-clothing-icon { display: inline-block; width: 1.2em; height: 1.2em; vertical-align: middle; margin-right: .15em; }
+  .two-day-clothing-icon-shorts { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 80'%3E%3Cpath fill='%23000' d='m89.801 8.102-.402-7.703H10.601l-.402 7.703z'/%3E%3Cpath fill='%23000' d='m90.5 13.199h-81l-7 62.699c3.3.801 6.8 1.5 10.5 2.102 11.3 1.8 21.5 1.8 30.102 1.101 1.8-11 3.699-22 5.5-33h2.898c1.801 11 3.7 22 5.5 33 8.602.7 18.801.7 30.102-1.101 3.699-.602 7.199-1.301 10.5-2.102z'/%3E%3C/svg%3E") center/contain no-repeat; }
+  .two-day-clothing-icon-pants { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23000' fill-rule='evenodd' d='m45.535 87.5v6.25h-20.535v-6.25zm8.93 0h20.535v6.25h-20.535zm-29.02-53.211v-15.539h7.3c-.09 2.633-.41 5.957-1.297 8.914-1.004 3.352-2.695 6.32-6.004 6.625zm10.414-15.539h28.273c.098 2.875.441 6.547 1.418 9.813 1.426 4.75 4.199 8.582 8.996 8.863v46.949h-19.09l-5.461-50-5.461 50h-19.09v-46.949c4.797-.281 7.57-4.113 8.996-8.863.977-3.266 1.32-6.938 1.418-9.813zm31.391 0h7.3v15.539c-3.309-.305-5-3.273-6.004-6.625-.887-2.961-1.207-6.281-1.297-8.914zm-41.805-3.125-.445-9.375h50l-.445 9.375z'/%3E%3C/svg%3E") center/contain no-repeat; }
 </style>
 
 <% unless view_object[:private_mode] %>
@@ -44,26 +49,14 @@
         <% end %>
 
         <% show_all = view_object.dig(:configuration, "show_all_events") == "true" %>
-        <% if day[:show_daily] && day[:daily].any? %>
-          <% daily_visual = show_all ? day[:daily] : day[:daily].select { |e| e[:attachment_image] || e[:kids_icon] } %>
-          <% daily_visual.select { |e| e[:kids_icon] }.each do |event| %>
-            <div class="two-day-kids-event">
-              <i class="mdi mdi-<%= event[:kids_icon] %> two-day-kids-icon"></i>
-              <span class="two-day-kids-summary"><%= event[:summary] %></span>
-            </div>
-          <% end %>
-          <% daily_text = daily_visual.reject { |e| e[:kids_icon] } %>
-          <% if daily_text.any? %>
-            <div class="two-day-events">
-              <table>
-                <% daily_text.each do |event| %>
-                  <tr><td class="two-day-event-summary"><%= event[:summary] %></td></tr>
-                <% end %>
-              </table>
-            </div>
-          <% end %>
+        <% daily_visual = day[:show_daily] && day[:daily].any? ? (show_all ? day[:daily] : day[:daily].select { |e| e[:attachment_image] || e[:kids_icon] }) : [] %>
+        <% daily_visual.select { |e| e[:kids_icon] }.each do |event| %>
+          <div class="two-day-kids-event">
+            <i class="mdi mdi-<%= event[:kids_icon] %> two-day-kids-icon"></i>
+            <span class="two-day-kids-summary"><%= event[:summary] %></span>
+          </div>
         <% end %>
-
+        <% daily_text = daily_visual.reject { |e| e[:kids_icon] } %>
         <% visual_periodic = show_all ? day[:periodic] : day[:periodic].select { |e| e[:attachment_image] || e[:kids_icon] } %>
         <% visual_periodic.select { |e| e[:kids_icon] }.each do |event| %>
           <div class="two-day-kids-event">
@@ -72,9 +65,21 @@
           </div>
         <% end %>
         <% periodic_text = visual_periodic.reject { |e| e[:kids_icon] } %>
-        <% if periodic_text.any? %>
+        <% if day[:clothing] || daily_text.any? || periodic_text.any? %>
           <div class="two-day-events">
             <table>
+              <% if day[:clothing] %>
+                <tr>
+                  <td style="white-space: nowrap; font-size: .85rem; padding: 0 .35rem 0 0; width: 1%;"><span class="two-day-clothing-icon two-day-clothing-icon-<%= day[:clothing][:icon] %>"></span></td>
+                  <td class="two-day-event-summary"><%= day[:clothing][:summary] %></td>
+                </tr>
+              <% end %>
+              <% daily_text.each do |event| %>
+                <tr>
+                  <td style="white-space: nowrap; font-size: .85rem; padding: 0 .35rem 0 0; width: 1%;"></td>
+                  <td class="two-day-event-summary"><%= event[:summary] %></td>
+                </tr>
+              <% end %>
               <% periodic_text.each do |event| %>
                 <tr>
                   <td style="white-space: nowrap; font-size: .85rem; padding: 0 .35rem 0 0; width: 1%;"><%= event[:start_time] %></td>
@@ -90,5 +95,5 @@
 <% end %>
 
 <div class="timestamp" style="position: absolute; bottom: 1px; right: 1px; font-family: 'Lato', sans-serif; font-size: 9px; z-index: 10; writing-mode: vertical-rl; text-orientation: mixed;">
-  <%= view_object[:attribution] if view_object[:attribution].present? %> <%= view_object[:timestamp] %>
+  Noun Project icons. <%= view_object[:attribution] if view_object[:attribution].present? %> <%= view_object[:timestamp] %>
 </div>
