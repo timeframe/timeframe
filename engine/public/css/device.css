@@ -1,3 +1,11 @@
+/* pixelify sans - pixel font for attribution */
+@font-face {
+  font-family: 'Pixelify Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/fonts/pixelifysans-latin-400-normal.woff2') format('woff2');
+}
+
 /* lato-regular - latin */
 @font-face {
   font-family: 'Lato';

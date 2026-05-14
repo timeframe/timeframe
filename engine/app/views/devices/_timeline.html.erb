@@ -10,7 +10,11 @@
                 <% if event[:icon_text] %>
                   <span><%= event[:icon_text] %></span>
                 <% else %>
-                  <i class="mdi mdi-<%= event[:icon_class] %>"<%= " style=\"#{event[:icon_style]}\"".html_safe if event[:icon_style] %>></i>
+                  <% if event[:icon_style] %>
+                    <i class="<%= "mdi mdi-#{event[:icon_class]}" %>" style="<%= event[:icon_style] %>"></i>
+                  <% else %>
+                    <i class="<%= "mdi mdi-#{event[:icon_class]}" %>"></i>
+                  <% end %>
                 <% end %>
               </td>
               <td>
@@ -32,7 +36,11 @@
               <% if event[:icon_text] %>
                 <span><%= event[:icon_text] %></span>
               <% else %>
-                <i class="mdi mdi-<%= event[:icon_class] %>"<%= " style=\"#{event[:icon_style]}\"".html_safe if event[:icon_style] %>></i>
+                <% if event[:icon_style] %>
+                  <i class="<%= "mdi mdi-#{event[:icon_class]}" %>" style="<%= event[:icon_style] %>"></i>
+                <% else %>
+                  <i class="<%= "mdi mdi-#{event[:icon_class]}" %>"></i>
+                <% end %>
               <% end %>
             </td>
             <td style="white-space: nowrap; font-size: .75rem; padding: 0 .5rem; width: 5.5rem;">

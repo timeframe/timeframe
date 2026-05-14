@@ -72,7 +72,7 @@
           <% end %>
           <% if defined?(current_user) && current_user&.is_admin? %>
             <li><%= link_to "Audit Log", admin_device_path(device), class: "dropdown-item" %></li>
-            <li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#preview-device-<%= device.id %>">Preview</button></li>
+            <li><%= link_to "Preview", preview_account_location_device_path(account, location, device), class: "dropdown-item" %></li>
             <li><hr class="dropdown-divider"></li>
           <% end %>
           <% if device.template_options %>
@@ -205,80 +205,6 @@
           var btn = document.getElementById('repair-btn-<%= device.id %>');
           input.addEventListener('input', function() {
             btn.disabled = !/^[0-9]{6}$/.test(input.value);
-          });
-        })();
-      </script>
-    <% end %>
-
-    <% if defined?(current_user) && current_user&.is_admin? %>
-      <%
-        preview_tz = location&.time_zone.presence || "America/Denver"
-        preview_now = Time.current.in_time_zone(preview_tz)
-      %>
-      <div class="modal fade" id="preview-device-<%= device.id %>" tabindex="-1" aria-labelledby="preview-device-label-<%= device.id %>" aria-hidden="true">
-        <div class="modal-dialog modal-fullscreen">
-          <div class="modal-content">
-            <div class="modal-header py-2">
-              <h5 class="modal-title" id="preview-device-label-<%= device.id %>">Preview "<%= device.name %>"</h5>
-              <div class="d-flex align-items-center gap-2 ms-auto me-3">
-                <input type="date" class="form-control form-control-sm" data-preview-date="<%= device.id %>" value="<%= preview_now.to_date.to_s %>">
-                <input type="time" class="form-control form-control-sm" data-preview-time="<%= device.id %>" value="<%= preview_now.strftime("%H:%M") %>">
-                <button type="button" class="btn btn-primary btn-sm" data-preview-go="<%= device.id %>">Go</button>
-              </div>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-0 d-flex align-items-center justify-content-center" style="background: #f0f0f0; overflow: hidden;">
-              <div data-preview-container="<%= device.id %>" style="position: relative; background: white; overflow: hidden;">
-                <iframe
-                  data-preview-iframe="<%= device.id %>"
-                  src="<%= preview_account_location_device_path(account, location, device) %>"
-                  width="<%= device.display_width %>"
-                  height="<%= device.display_height %>"
-                  scrolling="no"
-                  style="border: none; position: absolute; top: 0; left: 0; width: <%= device.display_width %>px; height: <%= device.display_height %>px; transform-origin: top left;"
-                ></iframe>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <script>
-        (function() {
-          var deviceId = '<%= device.id %>';
-          var basePath = '<%= preview_account_location_device_path(account, location, device) %>';
-          var dateInput = document.querySelector('[data-preview-date="' + deviceId + '"]');
-          var timeInput = document.querySelector('[data-preview-time="' + deviceId + '"]');
-          var goBtn = document.querySelector('[data-preview-go="' + deviceId + '"]');
-          var iframe = document.querySelector('[data-preview-iframe="' + deviceId + '"]');
-          var modal = document.getElementById('preview-device-' + deviceId);
-          var container = document.querySelector('[data-preview-container="' + deviceId + '"]');
-          var deviceWidth = <%= device.display_width %>;
-          var deviceHeight = <%= device.display_height %>;
-
-          function updatePreview() {
-            var at = dateInput.value + 'T' + timeInput.value + ':00';
-            iframe.src = basePath + '?at=' + encodeURIComponent(at);
-          }
-
-          function scaleToFit() {
-            var modalBody = container.parentElement;
-            var scaleX = modalBody.clientWidth / deviceWidth;
-            var scaleY = modalBody.clientHeight / deviceHeight;
-            var scale = Math.min(scaleX, scaleY, 1);
-            iframe.style.transform = 'scale(' + scale + ')';
-            container.style.width = Math.floor(deviceWidth * scale) + 'px';
-            container.style.height = Math.floor(deviceHeight * scale) + 'px';
-          }
-
-          goBtn.addEventListener('click', updatePreview);
-
-          modal.addEventListener('shown.bs.modal', function() {
-            scaleToFit();
-            window.addEventListener('resize', scaleToFit);
-          });
-
-          modal.addEventListener('hidden.bs.modal', function() {
-            window.removeEventListener('resize', scaleToFit);
           });
         })();
       </script>

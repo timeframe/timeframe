@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 6) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_14_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -30,6 +30,7 @@ ActiveRecord::Schema[8.1].define(version: 6) do
     t.text "name", null: false
     t.string "precipitation_unit", default: "in", null: false
     t.string "speed_unit", default: "mph", null: false
+    t.datetime "support_access_at"
     t.string "temperature_unit", default: "F", null: false
     t.datetime "updated_at", null: false
   end
@@ -161,6 +162,7 @@ ActiveRecord::Schema[8.1].define(version: 6) do
     t.datetime "created_at", null: false
     t.interval "duration"
     t.text "error"
+    t.text "error_backtrace", array: true
     t.integer "error_event", limit: 2
     t.datetime "finished_at"
     t.text "job_class"

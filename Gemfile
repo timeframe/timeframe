@@ -24,6 +24,7 @@ gem "bootstrap", "~> 5.3"
 gem "dartsass-rails"
 
 group :development, :test do
+  gem "herb"
   gem "overcommit"
   gem "m"
   gem "minitest"

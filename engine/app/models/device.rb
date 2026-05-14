@@ -9,8 +9,8 @@ class Device < ActiveRecord::Base
     "visionect_13" => {name: "Visionect Place & Play 13\"", template: "thirteen", width: 1200, height: 1600},
     "boox_mira_pro" => {name: "Boox Mira Pro 25.3\"", template: "mira", width: 1800, height: 3200, realtime: true},
     "boox_mira" => {name: "Boox Mira 13.3\"", template: "boox_mira", width: 1650, height: 2200, realtime: true},
-    "trmnl_og" => {name: "TRMNL (OG)", template: "trmnl", width: 800, height: 480, templates: [{name: "trmnl", label: "Landscape Timeline"}, {name: "three_day", label: "3-Day"}, {name: "two_day", label: "2-Day Portrait"}], screenshotted: true},
-    "reterminal_e1001" => {name: "reTerminal E1001 7.5\"", template: "trmnl", width: 800, height: 480, templates: [{name: "trmnl", label: "Landscape Timeline"}, {name: "three_day", label: "3-Day"}, {name: "two_day", label: "2-Day Portrait"}], screenshotted: true},
+    "trmnl_og" => {name: "TRMNL (OG)", template: "trmnl", width: 800, height: 480, templates: [{name: "trmnl", label: "Landscape Timeline"}, {name: "three_day", label: "3-Day"}, {name: "two_day", label: "2-Day"}], screenshotted: true},
+    "reterminal_e1001" => {name: "reTerminal E1001 7.5\"", template: "trmnl", width: 800, height: 480, templates: [{name: "trmnl", label: "Landscape Timeline"}, {name: "three_day", label: "3-Day"}, {name: "two_day", label: "2-Day"}], screenshotted: true},
     "reterminal_e1003" => {name: "reTerminal E1003 10.3\"", template: "reterminal", width: 1404, height: 1872, screenshotted: true},
     "trmnl_x" => {name: "TRMNL (X)", template: "reterminal", width: 1404, height: 1872, screenshotted: true},
     "display_1080p" => {name: "1080p Display", template: "eight_day", width: 1920, height: 1080, realtime: true}
@@ -128,7 +128,7 @@ class Device < ActiveRecord::Base
   end
 
   def portrait?
-    active_template == "two_day"
+    false
   end
 
   def template_options

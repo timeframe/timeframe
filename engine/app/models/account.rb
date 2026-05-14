@@ -9,4 +9,8 @@ class Account < ActiveRecord::Base
   has_many :devices, through: :locations
 
   validates :name, presence: true
+
+  def support_access?
+    support_access_at.present?
+  end
 end

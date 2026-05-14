@@ -412,22 +412,34 @@ class DevicesControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  # --- preview_frame ---
+
+  test "preview_frame renders device in demo mode" do
+    thirteen = Device.find_or_create_by!(name: "test-thirteen", model: "visionect_13") { |d| d.location = @location }
+    thirteen.update!(demo_mode_enabled: true, confirmed_at: Time.current, confirmation_code: nil)
+
+    get "/accounts/#{@account.id}/locations/#{@location.id}/devices/#{thirteen.id}/preview_frame"
+    assert_response :success
+    assert_includes response.body, "Spotted Towhee"
+  end
+
+  test "preview_frame renders device at a specific time" do
+    thirteen = Device.find_or_create_by!(name: "test-thirteen", model: "visionect_13") { |d| d.location = @location }
+    thirteen.update!(demo_mode_enabled: true, confirmed_at: Time.current, confirmation_code: nil)
+
+    get "/accounts/#{@account.id}/locations/#{@location.id}/devices/#{thirteen.id}/preview_frame?at=2026-05-10T14:00:00"
+    assert_response :success
+  end
+
   # --- preview ---
 
-  test "preview renders device in demo mode" do
+  test "preview renders preview page" do
     thirteen = Device.find_or_create_by!(name: "test-thirteen", model: "visionect_13") { |d| d.location = @location }
     thirteen.update!(demo_mode_enabled: true, confirmed_at: Time.current, confirmation_code: nil)
 
     get "/accounts/#{@account.id}/locations/#{@location.id}/devices/#{thirteen.id}/preview"
     assert_response :success
-    assert_includes response.body, "Spotted Towhee"
-  end
-
-  test "preview renders device at a specific time" do
-    thirteen = Device.find_or_create_by!(name: "test-thirteen", model: "visionect_13") { |d| d.location = @location }
-    thirteen.update!(demo_mode_enabled: true, confirmed_at: Time.current, confirmation_code: nil)
-
-    get "/accounts/#{@account.id}/locations/#{@location.id}/devices/#{thirteen.id}/preview?at=2026-05-10T14:00:00"
-    assert_response :success
+    assert_includes response.body, "Preview"
+    assert_includes response.body, "preview_frame"
   end
 end

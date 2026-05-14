@@ -1,4 +1,8 @@
 PreCommit:
+  HerbAnalyze:
+    enabled: true
+    command: ['bundle', 'exec', 'herb', 'analyze']
+    include: '**/*.erb'
   StandardRB:
     enabled: true
     command: ['bundle', 'exec', 'standardrb']

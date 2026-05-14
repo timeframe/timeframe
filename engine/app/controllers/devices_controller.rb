@@ -4,7 +4,7 @@ class DevicesController < ApplicationController
   skip_before_action :authenticate_user!, raise: false, only: [:confirmation_image, :show, :screenshot]
   before_action :set_account_and_location, except: [:confirmation_image, :show, :screenshot]
   before_action :authorize_device_access!, only: [:show, :screenshot]
-  layout "device", only: [:show, :preview]
+  layout "device", only: [:show, :preview_frame]
   after_action(only: [:show, :screenshot]) { response.headers["X-Deploy-Time"] = DEPLOY_TIME.to_s }
 
   def show
@@ -29,7 +29,7 @@ class DevicesController < ApplicationController
     render "devices/error", locals: {klass: e.class.to_s, message: e.message, backtrace: e.backtrace}
   end
 
-  def preview
+  def preview_frame
     device = @location.devices.find(params[:id])
     tz = device.location&.time_zone.presence || "America/Denver"
 
@@ -46,6 +46,14 @@ class DevicesController < ApplicationController
     render "devices/error", locals: {klass: e.class.to_s, message: e.message, backtrace: e.backtrace}
   end
 
+  def preview
+    @device = @location.devices.find(params[:id])
+    @account = @device.location.account
+    @preview_tz = @device.location&.time_zone.presence || "America/Denver"
+    @preview_now = Time.current.in_time_zone(@preview_tz)
+    render :preview_page
+  end
+
   def screenshot
     if @device.cached_image.blank? || params[:force] == "true"
       begin
@@ -57,7 +65,6 @@ class DevicesController < ApplicationController
     end
 
     @device.reload
-    log_image_served(@device)
     image_data = Base64.strict_decode64(@device.cached_image)
 
     send_data image_data, type: "image/png", disposition: "inline", filename: "#{@device.id}.png?#{Time.now.to_i}"
@@ -215,15 +222,5 @@ class DevicesController < ApplicationController
     end
 
     render plain: "Not authorized", status: :unauthorized
-  end
-
-  def log_image_served(device)
-    return unless defined?(AuditLog) && device.cached_image_at.present?
-    cache_age_seconds = (Time.current - device.cached_image_at).round
-    AuditLog.create!(
-      subject: device,
-      event_type: "image_served",
-      metadata: {cache_age_seconds: cache_age_seconds, source: "device_controller"}
-    )
   end
 end
