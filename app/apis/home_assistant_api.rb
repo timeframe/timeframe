@@ -238,7 +238,8 @@ class HomeAssistantApi
         event["starts_at"] = event["start"]["date"] || event["start"]["dateTime"]
         event["ends_at"] = event["end"]["date"] || event["end"]["dateTime"]
         event["icon"] = icons[entity_id] || "calendar"
-        event["id"] = event["uid"]
+        uid = event["uid"]
+        event["id"] = uid.present? ? uid : "#{entity_id}_#{event["starts_at"]}_#{Digest::MD5.hexdigest(event["summary"].to_s)[0, 8]}"
         event.delete("uid")
         event.delete("start")
         event.delete("end")
@@ -416,7 +417,7 @@ class HomeAssistantApi
     hours.each do |hour|
       hour_i = DateTime.parse(hour[:datetime]).to_i
       next unless hour_i >= day_start && hour_i < day_end
-      gust = convert_speed(hour[:wind_gust_speed])
+      gust = convert_speed(hour[:wind_gust_speed] || hour[:wind_speed])
       max_gust = gust if gust > max_gust
     end
 
@@ -436,8 +437,8 @@ class HomeAssistantApi
         (day.noon + 4.hours),
         (day.noon + 8.hours)
       ].map do |hour|
-        hour_str = hour.utc.iso8601
-        weather_hour = hours.find { it[:datetime] == hour_str }
+        hour_ts = hour.to_i
+        weather_hour = hours.find { DateTime.parse(it[:datetime]).to_i == hour_ts }
 
         next unless weather_hour.present?
 
@@ -503,8 +504,13 @@ class HomeAssistantApi
     events = []
 
     hours.each do |hour|
-      next if hour[:precipitation_probability].to_i < 30
-      next if hour[:precipitation].to_f == 0.0 && hour[:precipitation_probability].to_i < 50
+      prob = hour[:precipitation_probability]
+      precip = hour[:precipitation].to_f
+      rainy_condition = %w[rainy pouring snowy snowy-rainy hail].include?(hour[:condition])
+
+      next if precip == 0.0 && !rainy_condition
+      next if prob.present? && prob.to_i < 30
+      next if prob.present? && precip == 0.0 && prob.to_i < 50
 
       hour_i = DateTime.parse(hour[:datetime]).to_i
       next if hour_i < Time.now.to_i
@@ -564,7 +570,7 @@ class HomeAssistantApi
     events = []
 
     hours.each do |hour|
-      wind_gust = convert_speed(hour[:wind_gust_speed])
+      wind_gust = convert_speed(hour[:wind_gust_speed] || hour[:wind_speed])
       next if wind_gust < wind_gust_threshold
 
       hour_i = DateTime.parse(hour[:datetime]).to_i

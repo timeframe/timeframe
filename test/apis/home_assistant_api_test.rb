@@ -891,6 +891,22 @@ class HomeAssistantApiTest < Minitest::Test
     end
   end
 
+  def test_hourly_calendar_events_with_offset_format
+    travel_to DateTime.new(2023, 8, 27, 12, 0, 0, "-0600") do
+      today = Date.new(2023, 8, 27)
+      noon_utc = today.in_time_zone("America/Chicago").noon.utc
+      offset_str = noon_utc.strftime("%Y-%m-%dT%H:%M:%S+00:00")
+
+      api = HomeAssistantApi.new
+      api.stub :hourly_forecast, [{datetime: offset_str, condition: "partlycloudy", temperature: 72}] do
+        events = api.hourly_calendar_events
+        assert events.length > 0
+        assert_equal "72°", events.first.summary
+        assert_equal "weather-partly-cloudy", events.first.icon
+      end
+    end
+  end
+
   def test_daily_calendar_events_returns_empty_when_no_data
     api = new_test_api
     assert_equal [], api.daily_calendar_events
@@ -1088,6 +1104,31 @@ class HomeAssistantApiTest < Minitest::Test
     api = HomeAssistantApi.new
     api.stub :hourly_forecast, [
       {datetime: future_time, condition: "rainy", precipitation_probability: 80, precipitation: 0.0}
+    ] do
+      events = api.precip_calendar_events
+      assert_equal 0, events.length
+    end
+  end
+
+  def test_precip_calendar_events_without_probability
+    future_time = (Time.now + 1.hour).utc.beginning_of_hour.iso8601
+
+    api = HomeAssistantApi.new
+    api.stub :hourly_forecast, [
+      {datetime: future_time, condition: "rainy", precipitation: 2.0}
+    ] do
+      events = api.precip_calendar_events
+      assert_equal 1, events.length
+      assert_equal "Rain 2.0\"", events.first.summary
+    end
+  end
+
+  def test_precip_calendar_events_without_probability_skips_zero_precip
+    future_time = (Time.now + 1.hour).utc.beginning_of_hour.iso8601
+
+    api = HomeAssistantApi.new
+    api.stub :hourly_forecast, [
+      {datetime: future_time, condition: "sunny", precipitation: 0.0}
     ] do
       events = api.precip_calendar_events
       assert_equal 0, events.length
@@ -1321,6 +1362,31 @@ class HomeAssistantApiTest < Minitest::Test
     api = HomeAssistantApi.new
     api.stub :hourly_forecast, [
       {datetime: past_time, wind_speed: 50.0, wind_bearing: 180}
+    ] do
+      assert_equal [], api.wind_calendar_events
+    end
+  end
+
+  def test_wind_calendar_events_with_wind_speed_fallback
+    future_time = (Time.now + 1.hour).utc.beginning_of_hour.iso8601
+
+    api = HomeAssistantApi.new
+    api.stub :hourly_forecast, [
+      {datetime: future_time, wind_speed: 40.0, wind_bearing: 180}
+    ] do
+      events = api.wind_calendar_events
+      assert_equal 1, events.length
+      assert_includes events.first.summary, "40mph"
+      assert_equal "arrow-up", events.first.icon
+    end
+  end
+
+  def test_wind_calendar_events_wind_speed_fallback_below_threshold
+    future_time = (Time.now + 1.hour).utc.beginning_of_hour.iso8601
+
+    api = HomeAssistantApi.new
+    api.stub :hourly_forecast, [
+      {datetime: future_time, wind_speed: 10.0, wind_bearing: 180}
     ] do
       assert_equal [], api.wind_calendar_events
     end
