@@ -60,14 +60,14 @@
         <% kids_daily.each do |event| %>
           <div class="two-day-kids-event">
             <i class="mdi mdi-<%= event[:kids_icon] %> two-day-kids-icon" style="font-size: 3rem;"></i>
-            <span class="two-day-kids-summary"><%= event[:summary] %></span>
+            <span class="two-day-kids-summary"><%= truncate(event[:summary], length: 30) %></span>
           </div>
         <% end %>
         <% daily_text = daily_visual.reject { |e| e[:kids_icon] } %>
         <% kids_periodic.each do |event| %>
           <div class="two-day-kids-event">
             <i class="mdi mdi-<%= event[:kids_icon] %> two-day-kids-icon" style="font-size: 3rem;"></i>
-            <span class="two-day-kids-summary"><%= event[:summary] %></span>
+            <span class="two-day-kids-summary"><%= truncate(event[:summary], length: 30) %></span>
           </div>
         <% end %>
         <% periodic_text = visual_periodic.reject { |e| e[:kids_icon] } %>
@@ -77,7 +77,7 @@
               <% daily_text.each do |event| %>
                 <tr>
                   <td style="white-space: nowrap; font-size: 1.4rem; padding: 0 .35rem 0 0; width: 1%;"></td>
-                  <td class="two-day-event-summary"><%= event[:summary] %></td>
+                  <td class="two-day-event-summary"><%= truncate(event[:summary], length: 30) %></td>
                 </tr>
               <% end %>
               <% periodic_text.each do |event| %>
@@ -94,7 +94,7 @@
                       <%= event[:full_start_time] %>
                     <% end %>
                   </td>
-                  <td class="two-day-event-summary"><%= event[:summary] %></td>
+                  <td class="two-day-event-summary"><%= truncate(event[:summary], length: 30) %></td>
                 </tr>
               <% end %>
             </table>

@@ -51,7 +51,7 @@
               <% daily_images.each do |event| %>
                 <tr>
                   <td style="white-space: nowrap; font-size: .85rem; padding: 0 .35rem 0 0; width: 1%;"></td>
-                  <td class="three-day-event-summary"><%= event[:summary] %></td>
+                  <td class="three-day-event-summary"><%= truncate(event[:summary], length: 30) %></td>
                 </tr>
               <% end %>
               <% visual_periodic.each do |event| %>
@@ -68,7 +68,7 @@
                       <%= event[:full_start_time] %>
                     <% end %>
                   </td>
-                  <td class="three-day-event-summary"><%= event[:summary] %></td>
+                  <td class="three-day-event-summary"><%= truncate(event[:summary], length: 30) %></td>
                 </tr>
               <% end %>
             </table>
