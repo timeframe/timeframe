@@ -188,6 +188,7 @@ class DeviceEvent
     elsif multi_day? && as_of
       numerator = (as_of.to_date - @starts_at.to_date).to_i + 1
       denominator = (@ends_at.to_date - @starts_at.to_date).to_i
+      denominator += 1 unless daily?
 
       "#{@summary} (#{numerator}/#{denominator})"
     else

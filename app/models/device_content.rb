@@ -132,7 +132,10 @@ class DeviceContent
             if morning
               morning_temp = morning.summary.to_i
               noon_temp = noon ? noon.summary.to_i : morning_temp
+              daily_weather = events[:daily].find(&:weather?)
+              daily_high = daily_weather ? daily_weather.summary.to_i : nil
               is_shorts = morning_temp >= clothing_threshold && noon_temp >= clothing_noon_threshold
+              is_shorts = false if daily_high && daily_high < clothing_noon_threshold
               clothing_data = {icon: is_shorts ? "shorts" : "pants", summary: is_shorts ? "Shorts" : "Pants"}
             end
           end

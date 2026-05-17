@@ -123,7 +123,12 @@ class DemoDeviceContent
           if morning
             morning_temp = morning.summary.to_i
             noon_temp = noon ? noon.summary.to_i : morning_temp
+            # :nocov:
+            daily_weather = events[:daily].find(&:weather?)
+            daily_high = daily_weather ? daily_weather.summary.to_i : nil
+            # :nocov:
             is_shorts = morning_temp >= 55 && noon_temp >= 65
+            is_shorts = false if daily_high && daily_high < 65
             clothing_data = {icon: is_shorts ? "shorts" : "pants", summary: is_shorts ? "Shorts" : "Pants"}
           end
         end
@@ -433,6 +438,16 @@ class DemoDeviceContent
         timezone: timezone
       )
     end
+
+    # Add a demo daily weather forecast for every day
+    daily << DeviceEvent.new(
+      id: "_ha_weather_day_#{date.to_i}",
+      starts_at: date.beginning_of_day,
+      ends_at: (date + 1.day).beginning_of_day,
+      summary: "72° / 50°",
+      icon: "weather-partly-cloudy",
+      timezone: timezone
+    )
 
     # Add a demo attachment image event for every day
     daily << DeviceEvent.new(
