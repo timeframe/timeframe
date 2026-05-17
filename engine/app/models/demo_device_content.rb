@@ -105,9 +105,12 @@ class DemoDeviceContent
 
         if clothing_forecast
           morning = weather_events.find { |e| e.starts_at.hour == 8 }
+          noon = weather_events.find { |e| e.starts_at.hour == 12 }
           if morning
-            temp = morning.summary.to_i
-            clothing_data = {icon: (temp >= 65) ? "shorts" : "pants", summary: (temp >= 65) ? "Shorts" : "Pants"}
+            morning_temp = morning.summary.to_i
+            noon_temp = noon ? noon.summary.to_i : morning_temp
+            is_shorts = morning_temp >= 55 && noon_temp >= 65
+            clothing_data = {icon: is_shorts ? "shorts" : "pants", summary: is_shorts ? "Shorts" : "Pants"}
           end
         end
       end

@@ -42,6 +42,10 @@ class DeviceContent
       (home_assistant_api.temperature_unit == "C") ? 18 : 55
     end
 
+    clothing_noon_threshold = if clothing_forecast
+      (home_assistant_api.temperature_unit == "C") ? 18 : 65
+    end
+
     if home_assistant_api.weather_healthy?
       raw_events << home_assistant_api.hourly_calendar_events
       raw_events << home_assistant_api.daily_calendar_events if include_daily_weather
@@ -123,9 +127,12 @@ class DeviceContent
 
           if clothing_forecast && clothing_threshold
             morning = weather_events.find { |e| e.starts_at.hour == 8 }
+            noon = weather_events.find { |e| e.starts_at.hour == 12 }
             if morning
-              temp = morning.summary.to_i
-              clothing_data = {icon: (temp >= clothing_threshold) ? "shorts" : "pants", summary: (temp >= clothing_threshold) ? "Shorts" : "Pants"}
+              morning_temp = morning.summary.to_i
+              noon_temp = noon ? noon.summary.to_i : morning_temp
+              is_shorts = morning_temp >= clothing_threshold && noon_temp >= clothing_noon_threshold
+              clothing_data = {icon: is_shorts ? "shorts" : "pants", summary: is_shorts ? "Shorts" : "Pants"}
             end
           end
         end
