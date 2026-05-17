@@ -13,9 +13,12 @@
   .two-day-events { font-size: 2.25rem; overflow: hidden; }
   .two-day-events table { width: 100%; border-collapse: collapse; }
   .two-day-events td { padding: .25rem 0; }
-  .two-day-events td:first-child { text-align: right; }
-  .two-day-event-icon { width: 1rem; text-align: center; font-size: 1.1rem; font-weight: bold; }
-  .two-day-event-summary { overflow-wrap: break-word; word-wrap: break-word; }
+  .two-day-events td:first-child { text-align: left; }
+  .two-day-events td.two-day-event-icon { width: 3rem; text-align: center; font-size: 2.5rem; font-weight: bold; padding: .25rem .7rem .25rem .35rem; }
+  .two-day-event-summary { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 0; }
+  .two-day-event-time { white-space: nowrap; font-size: 75%; padding: 0 .35rem 0 0; width: 1%; }
+  .two-day-events-with-times { font-size: 1.5rem; }
+  .two-day-events-with-times .two-day-event-icon { width: 2rem; font-size: 1.65rem; }
   .two-day-kids-event { display: flex; flex-direction: row; align-items: center; gap: .5rem; padding: .35rem 0; }
   .two-day-kids-icon { line-height: 1; width: 3rem; text-align: center; }
   .two-day-kids-summary { font-size: 2.25rem; }
@@ -30,6 +33,7 @@
 
 <% unless view_object[:private_mode] %>
   <% show_all = view_object.dig(:configuration, "show_all_events") == "true" %>
+  <% show_times = view_object.dig(:configuration, "show_event_times") != "false" %>
   <div class="two-day-columns">
     <% view_object[:day_groups].each do |day| %>
       <div class="two-day-col<%= ' two-day-col-other' unless day[:date].to_date == view_object[:current_time].to_date %>">
@@ -54,44 +58,58 @@
         </div>
 
         <% daily_visual = day[:show_daily] && day[:daily].any? ? (show_all ? day[:daily] : day[:daily].select { |e| e[:attachment_image] || e[:kids_icon] }) : [] %>
-        <% kids_daily = daily_visual.select { |e| e[:kids_icon] } %>
         <% visual_periodic = show_all ? day[:periodic] : day[:periodic].select { |e| e[:attachment_image] || e[:kids_icon] } %>
-        <% kids_periodic = visual_periodic.select { |e| e[:kids_icon] } %>
-        <% kids_daily.each do |event| %>
-          <div class="two-day-kids-event">
-            <i class="mdi mdi-<%= event[:kids_icon] %> two-day-kids-icon" style="font-size: 3rem;"></i>
-            <span class="two-day-kids-summary"><%= truncate(event[:summary], length: 30) %></span>
-          </div>
-        <% end %>
-        <% daily_text = daily_visual.reject { |e| e[:kids_icon] } %>
-        <% kids_periodic.each do |event| %>
-          <div class="two-day-kids-event">
-            <i class="mdi mdi-<%= event[:kids_icon] %> two-day-kids-icon" style="font-size: 3rem;"></i>
-            <span class="two-day-kids-summary"><%= truncate(event[:summary], length: 30) %></span>
-          </div>
-        <% end %>
-        <% periodic_text = visual_periodic.reject { |e| e[:kids_icon] } %>
-        <% if daily_text.any? || periodic_text.any? %>
-          <div class="two-day-events">
+        <% if daily_visual.any? || visual_periodic.any? %>
+          <div class="two-day-events<%= ' two-day-events-with-times' if show_times %>">
             <table>
-              <% daily_text.each do |event| %>
+              <% daily_visual.each do |event| %>
                 <tr>
-                  <td style="white-space: nowrap; font-size: 1.4rem; padding: 0 .35rem 0 0; width: 1%;"></td>
+                  <% if show_times %>
+                    <td class="two-day-event-time"></td>
+                  <% end %>
+                  <td class="two-day-event-icon">
+                    <% if event[:kids_icon] %>
+                      <i class="mdi mdi-<%= event[:kids_icon] %>"></i>
+                    <% elsif event[:icon_class] %>
+                      <% if event[:icon_style] %>
+                        <i class="mdi mdi-<%= event[:icon_class] %>" style="<%= event[:icon_style] %>"></i>
+                      <% else %>
+                        <i class="mdi mdi-<%= event[:icon_class] %>"></i>
+                      <% end %>
+                    <% elsif event[:icon_text] %>
+                      <%= event[:icon_text] %>
+                    <% end %>
+                  </td>
                   <td class="two-day-event-summary"><%= truncate(event[:summary], length: 30) %></td>
                 </tr>
               <% end %>
-              <% periodic_text.each do |event| %>
+              <% visual_periodic.each do |event| %>
                 <tr>
-                  <td style="white-space: nowrap; font-size: 1.4rem; padding: 0 .35rem 0 0; width: 1%;">
-                    <% if event[:weather_ranged] %>
-                      <% parts = event[:full_time].split(" - ", 2) %>
-                      <% if parts.length == 2 %>
-                        <%= parts[0] %> -<br><%= parts[1] %>
+                  <% if show_times %>
+                    <td class="two-day-event-time">
+                      <% if event[:weather_ranged] %>
+                        <% parts = event[:time_html].split(" - ", 2) %>
+                        <% if parts.length == 2 %>
+                          <%= parts[0] %> -<br><%= parts[1] %>
+                        <% else %>
+                          <%= event[:time_html] %>
+                        <% end %>
                       <% else %>
-                        <%= event[:full_time] %>
+                        <%= event[:start_time] %>
                       <% end %>
-                    <% else %>
-                      <%= event[:full_start_time] %>
+                    </td>
+                  <% end %>
+                  <td class="two-day-event-icon">
+                    <% if event[:kids_icon] %>
+                      <i class="mdi mdi-<%= event[:kids_icon] %>"></i>
+                    <% elsif event[:icon_class] %>
+                      <% if event[:icon_style] %>
+                        <i class="mdi mdi-<%= event[:icon_class] %>" style="<%= event[:icon_style] %>"></i>
+                      <% else %>
+                        <i class="mdi mdi-<%= event[:icon_class] %>"></i>
+                      <% end %>
+                    <% elsif event[:icon_text] %>
+                      <%= event[:icon_text] %>
                     <% end %>
                   </td>
                   <td class="two-day-event-summary"><%= truncate(event[:summary], length: 30) %></td>

@@ -111,6 +111,13 @@
                 <%= submit_tag(device.configuration&.dig("hide_dates") == "true" ? "Show Dates" : "Hide Dates", class: "dropdown-item", style: "border: none; background: none; width: 100%; text-align: left; cursor: pointer;") %>
               <% end %>
             </li>
+            <li>
+              <%= form_with url: update_configuration_account_location_device_path(account, location, device), method: :patch do %>
+                <input type="hidden" name="key" value="show_event_times">
+                <input type="hidden" name="value" value="<%= device.configuration&.dig("show_event_times") == "false" ? "true" : "false" %>">
+                <%= submit_tag(device.configuration&.dig("show_event_times") == "false" ? "Show Event Times" : "Hide Event Times", class: "dropdown-item", style: "border: none; background: none; width: 100%; text-align: left; cursor: pointer;") %>
+              <% end %>
+            </li>
             <li><hr class="dropdown-divider"></li>
           <% end %>
           <li>
