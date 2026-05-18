@@ -1,0 +1,323 @@
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="d-flex align-items-center mb-4">
+      <a href="/" class="text-decoration-none me-2">&larr;</a>
+      <h3 class="mb-0"><%= @device.name %></h3>
+      <span class="text-body-tertiary ms-2" style="font-size: 0.85rem;"><%= @device.model_name_label %></span>
+    </div>
+
+    <%# Screenshot %>
+    <% if @device.screenshotted? && @device.cached_image.present? %>
+      <div class="card mb-3">
+        <div class="card-header d-flex align-items-center justify-content-between py-2">
+          <span class="small text-body-secondary">Screenshot</span>
+          <button type="button" class="btn btn-outline-secondary btn-sm" id="regen-screenshot-btn">Regenerate</button>
+        </div>
+        <div class="card-body p-2">
+          <div class="d-flex align-items-center justify-content-center" style="background: #f0f0f0; border-radius: .25rem; overflow: hidden; min-height: 100px;" id="screenshot-container">
+            <img src="<%= screenshot_account_location_device_path(@account, @location, @device) %>" alt="<%= @device.name %>" style="max-width: 100%; height: auto;" id="screenshot-img">
+            <div id="screenshot-loading" style="display: none;" class="text-body-secondary small py-4">Regenerating screenshot&hellip;</div>
+          </div>
+        </div>
+      </div>
+      <script>
+        (function() {
+          var btn = document.getElementById('regen-screenshot-btn');
+          var img = document.getElementById('screenshot-img');
+          var loading = document.getElementById('screenshot-loading');
+          btn.addEventListener('click', function() {
+            btn.disabled = true;
+            btn.textContent = 'Regenerating\u2026';
+            img.style.display = 'none';
+            loading.style.display = '';
+            var newImg = new Image();
+            newImg.onload = function() {
+              img.src = newImg.src;
+              img.style.display = '';
+              loading.style.display = 'none';
+              btn.disabled = false;
+              btn.textContent = 'Regenerate';
+            };
+            newImg.onerror = function() {
+              loading.textContent = 'Failed to regenerate screenshot.';
+              btn.disabled = false;
+              btn.textContent = 'Regenerate';
+            };
+            newImg.src = '<%= screenshot_account_location_device_path(@account, @location, @device) %>' + '?force=true&_=' + Date.now();
+          });
+        })();
+      </script>
+    <% end %>
+
+    <%# Live preview %>
+    <div class="card mb-3">
+        <div class="card-header d-flex align-items-center justify-content-between py-2">
+          <span class="small text-body-secondary">Preview</span>
+          <div class="d-flex align-items-center gap-1">
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="preview-prev" title="Previous day">&larr;</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="preview-today">Today</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="preview-next" title="Next day">&rarr;</button>
+            <input type="date" class="form-control form-control-sm ms-1" id="preview-date" value="<%= @preview_now.to_date.to_s %>" style="width: auto;">
+            <input type="time" class="form-control form-control-sm" id="preview-time" value="<%= @preview_now.strftime("%H:%M") %>" style="width: auto;">
+            <button type="button" class="btn btn-primary btn-sm" id="preview-go">Go</button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div id="preview-container" style="position: relative; background: white; overflow: hidden; width: 100%;">
+            <iframe
+              id="preview-iframe"
+              src="<%= preview_frame_account_location_device_path(@account, @location, @device) %>"
+              width="<%= @device.display_width %>"
+              height="<%= @device.display_height %>"
+              scrolling="no"
+              style="border: none; position: absolute; top: 0; left: 0; width: <%= @device.display_width %>px; height: <%= @device.display_height %>px; transform-origin: top left;"
+            ></iframe>
+          </div>
+        </div>
+        <script>
+          (function() {
+            var basePath = '<%= preview_frame_account_location_device_path(@account, @location, @device) %>';
+            var dateInput = document.getElementById('preview-date');
+            var timeInput = document.getElementById('preview-time');
+            var goBtn = document.getElementById('preview-go');
+            var prevBtn = document.getElementById('preview-prev');
+            var nextBtn = document.getElementById('preview-next');
+            var todayBtn = document.getElementById('preview-today');
+            var container = document.getElementById('preview-container');
+            var iframe = document.getElementById('preview-iframe');
+            var deviceWidth = <%= @device.display_width %>;
+            var deviceHeight = <%= @device.display_height %>;
+            function updatePreview() {
+              var at = dateInput.value + 'T' + timeInput.value + ':00';
+              iframe.src = basePath + '?at=' + encodeURIComponent(at);
+            }
+            function shiftDate(days) {
+              var d = new Date(dateInput.value + 'T12:00:00');
+              d.setDate(d.getDate() + days);
+              dateInput.value = d.toISOString().slice(0, 10);
+              updatePreview();
+            }
+            prevBtn.addEventListener('click', function() { shiftDate(-1); });
+            nextBtn.addEventListener('click', function() { shiftDate(1); });
+            todayBtn.addEventListener('click', function() {
+              dateInput.value = '<%= @preview_now.to_date.to_s %>';
+              timeInput.value = '<%= @preview_now.strftime("%H:%M") %>';
+              updatePreview();
+            });
+            function scaleToFit() {
+              var availWidth = container.parentElement.clientWidth;
+              var scale = availWidth / deviceWidth;
+              iframe.style.transform = 'scale(' + scale + ')';
+              container.style.height = Math.floor(deviceHeight * scale) + 'px';
+            }
+            goBtn.addEventListener('click', updatePreview);
+            scaleToFit();
+            window.addEventListener('resize', scaleToFit);
+          })();
+        </script>
+    </div>
+
+    <%# Rename %>
+    <div class="card mb-3">
+      <div class="card-body">
+        <h6 class="card-title">Device Name</h6>
+        <%= form_with url: rename_account_location_device_path(@account, @location, @device), method: :patch, class: "d-flex gap-2" do %>
+          <input type="text" name="name" value="<%= @device.name %>" class="form-control" required>
+          <%= submit_tag "Rename", class: "btn btn-primary" %>
+        <% end %>
+      </div>
+    </div>
+
+    <%# Template selection %>
+    <% if @device.template_options %>
+      <div class="card mb-3">
+        <div class="card-body">
+          <h6 class="card-title">Display Template</h6>
+          <div class="list-group list-group-flush">
+            <% @device.template_options.each do |tmpl| %>
+              <%= form_with url: update_template_account_location_device_path(@account, @location, @device), method: :patch do %>
+                <input type="hidden" name="display_template" value="<%= tmpl[:name] %>">
+                <button type="submit" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center<%= ' active' if @device.active_template == tmpl[:name] %>">
+                  <%= tmpl[:label] %>
+                  <% if @device.active_template == tmpl[:name] %>
+                    <i class="mdi mdi-check"></i>
+                  <% end %>
+                </button>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <%# Display options %>
+    <% if %w[two_day three_day].include?(@device.active_template) %>
+      <div class="card mb-3">
+        <div class="card-body">
+          <h6 class="card-title">Display Options</h6>
+          <% options = [] %>
+          <% options << {key: "show_all_events", on_label: "Show All Events", off_label: "Only Events with Icons", default_on: false} %>
+          <% options << {key: "clothing_forecast", on_label: "Clothing Forecast", off_label: "Clothing Forecast", default_on: false} %>
+          <% options << {key: "show_icons", on_label: "Show Icons", off_label: "Show Icons", default_on: true} %>
+          <% if @device.configuration&.dig("show_icons") != "false" %>
+            <% options << {key: "auto_assign_icons", on_label: "Auto Assign Icons", off_label: "Auto Assign Icons", default_on: true} %>
+          <% end %>
+          <% if @device.active_template == "two_day" %>
+            <% options << {key: "hide_dates", on_label: "Hide Dates", off_label: "Hide Dates", default_on: false} %>
+            <% options << {key: "show_event_times", on_label: "Show Event Times", off_label: "Show Event Times", default_on: true} %>
+          <% end %>
+          <% options.each do |opt| %>
+            <%
+              current_value = @device.configuration&.dig(opt[:key])
+              is_on = opt[:default_on] ? current_value != "false" : current_value == "true"
+              new_value = is_on ? "false" : "true"
+            %>
+            <%= form_with url: update_configuration_account_location_device_path(@account, @location, @device), method: :patch do %>
+              <input type="hidden" name="key" value="<%= opt[:key] %>">
+              <input type="hidden" name="value" value="<%= new_value %>">
+              <div class="form-check form-switch mb-2">
+                <% if is_on %>
+                  <button type="submit" class="form-check-input" role="switch" style="cursor: pointer;" checked></button>
+                <% else %>
+                  <button type="submit" class="form-check-input" role="switch" style="cursor: pointer;"></button>
+                <% end %>
+                <label class="form-check-label"><%= opt[:on_label] %></label>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <%# Event filter %>
+    <div class="card mb-3">
+      <div class="card-body">
+        <h6 class="card-title">Event Filter</h6>
+        <p class="small text-body-secondary mb-2">Only show calendar events matching these keywords (comma-separated). Leave blank to show all events.</p>
+        <%= form_with url: update_configuration_account_location_device_path(@account, @location, @device), method: :patch, class: "d-flex gap-2" do %>
+          <input type="hidden" name="key" value="event_filter">
+          <input type="text" name="value" value="<%= @device.configuration&.dig("event_filter") %>" class="form-control" placeholder="e.g. soccer, piano, dentist">
+          <%= submit_tag "Save", class: "btn btn-primary" %>
+        <% end %>
+      </div>
+    </div>
+
+    <%# Demo mode %>
+    <div class="card mb-3">
+      <div class="card-body">
+        <%= form_with url: account_location_device_path(@account, @location, @device), method: :patch do %>
+          <div class="form-check form-switch">
+            <% if @device.demo_mode_enabled? %>
+              <button type="submit" class="form-check-input" role="switch" style="cursor: pointer;" checked></button>
+            <% else %>
+              <button type="submit" class="form-check-input" role="switch" style="cursor: pointer;"></button>
+            <% end %>
+            <label class="form-check-label">Demo Mode</label>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <% if defined?(current_user) && current_user&.is_admin? %>
+      <div class="card mb-3">
+        <div class="card-body">
+          <h6 class="card-title">Admin</h6>
+          <div class="d-flex gap-2">
+            <% if respond_to?(:admin_device_path) %>
+              <%= link_to "Audit Log", admin_device_path(@device), class: "btn btn-outline-secondary btn-sm" %>
+            <% end %>
+            <% if @device.screenshotted? %>
+              <a href="<%= screenshot_account_location_device_path(@account, @location, @device) %>" class="btn btn-outline-secondary btn-sm">Screenshot</a>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <%# Token URL %>
+    <% if @device.visionect? && @device.display_key.present? %>
+      <div class="card mb-3">
+        <div class="card-body">
+          <h6 class="card-title">Token URL</h6>
+          <div class="input-group mb-2">
+            <input type="text" class="form-control form-control-sm" value="<%= @device.token_device_url(host: request.base_url) %>" readonly id="token-url-<%= @device.id %>">
+            <button class="btn btn-outline-secondary btn-sm" type="button" onclick="var el=document.getElementById('token-url-<%= @device.id %>'); navigator.clipboard.writeText(el.value).then(function(){alert('Copied!')})">Copy</button>
+          </div>
+          <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="collapse" data-bs-target="#regen-<%= @device.id %>">Regenerate URL</button>
+          <div class="collapse mt-2" id="regen-<%= @device.id %>">
+            <%= form_with url: regenerate_tokens_account_location_device_path(@account, @location, @device), method: :post do %>
+              <p class="small text-muted">This will invalidate the current token URL. Type <strong><%= @device.name %></strong> to confirm.</p>
+              <div class="input-group">
+                <input type="text" name="name_confirmation" class="form-control form-control-sm" placeholder="<%= @device.name %>" autocomplete="off" data-regen-input="<%= @device.id %>">
+                <%= submit_tag "Regenerate", class: "btn btn-warning btn-sm", disabled: true, id: "regen-btn-#{@device.id}" %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+      <script>
+        (function() {
+          var input = document.querySelector('[data-regen-input="<%= @device.id %>"]');
+          var btn = document.getElementById('regen-btn-<%= @device.id %>');
+          input.addEventListener('input', function() {
+            btn.disabled = input.value.toLowerCase().trim() !== '<%= @device.name.downcase.gsub("'", "\\'") %>'.toLowerCase();
+          });
+        })();
+      </script>
+    <% end %>
+
+    <%# Reconnect %>
+    <% if @device.pairing_code_device? && @device.disconnected? %>
+      <div class="card mb-3">
+        <div class="card-body">
+          <h6 class="card-title">Reconnect</h6>
+          <% if @device.reterminal_e1003? %>
+            <p class="small text-muted">On your reTerminal, reconnect to the API server at <code><%= request.base_url %></code> to get a new pairing code.</p>
+          <% elsif @device.trmnl? || @device.reterminal_e1001? %>
+            <p class="small text-muted">On your device, reconnect to the API server at <code><%= request.base_url %></code> to get a new pairing code.</p>
+          <% else %>
+            <p class="small text-muted">On your device, visit <code><%= request.base_url %>/pair</code> to get a new pairing code.</p>
+          <% end %>
+          <%= form_with url: repair_account_location_device_path(@account, @location, @device), method: :post do %>
+            <div class="input-group">
+              <input type="text" name="pairing_code" class="form-control form-control-sm" placeholder="e.g. 123456" autocomplete="off" inputmode="numeric" minlength="6" maxlength="6" pattern="[0-9]{6}" data-repair-input="<%= @device.id %>">
+              <%= submit_tag "Reconnect", class: "btn btn-primary btn-sm", disabled: true, id: "repair-btn-#{@device.id}" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+      <script>
+        (function() {
+          var input = document.querySelector('[data-repair-input="<%= @device.id %>"]');
+          var btn = document.getElementById('repair-btn-<%= @device.id %>');
+          input.addEventListener('input', function() {
+            btn.disabled = !/^[0-9]{6}$/.test(input.value);
+          });
+        })();
+      </script>
+    <% end %>
+
+    <%# Danger zone %>
+    <div class="card mb-3 border-danger">
+      <div class="card-body">
+        <h6 class="card-title text-danger">Delete Device</h6>
+        <p class="small text-muted">Type <strong><%= @device.name %></strong> to confirm deletion.</p>
+        <%= form_with url: account_location_device_path(@account, @location, @device), method: :delete do %>
+          <div class="input-group">
+            <input type="text" name="name_confirmation" class="form-control form-control-sm" placeholder="<%= @device.name %>" autocomplete="off" data-delete-input="<%= @device.id %>">
+            <%= submit_tag "Delete Device", class: "btn btn-danger btn-sm", disabled: true, id: "delete-btn-#{@device.id}" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    <script>
+      (function() {
+        var input = document.querySelector('[data-delete-input="<%= @device.id %>"]');
+        var btn = document.getElementById('delete-btn-<%= @device.id %>');
+        input.addEventListener('input', function() {
+          btn.disabled = input.value.toLowerCase().trim() !== '<%= @device.name.downcase.gsub("'", "\\'") %>'.toLowerCase();
+        });
+      })();
+    </script>
+  </div>
+</div>

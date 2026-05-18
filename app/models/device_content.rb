@@ -15,7 +15,8 @@ class DeviceContent
     always_show_today: false,
     start_offset: 0,
     clothing_forecast: false,
-    auto_icons: false
+    auto_icons: false,
+    event_filter: nil
   )
     current_time ||= Time.now.utc.in_time_zone(home_assistant_api.time_zone)
 
@@ -67,7 +68,12 @@ class DeviceContent
 
     out[:private_mode] = private_mode
 
-    raw_events << home_assistant_api.calendar_events
+    cal_events = home_assistant_api.calendar_events
+    if event_filter.present?
+      keywords = event_filter.split(",").map(&:strip).reject(&:empty?).map(&:downcase)
+      cal_events = cal_events.select { |e| keywords.any? { |kw| e.summary.to_s.downcase.include?(kw) } } unless keywords.empty?
+    end
+    raw_events << cal_events
 
     out[:day_groups] =
       (start_offset...(start_offset + days)).to_a.map do |day_index|

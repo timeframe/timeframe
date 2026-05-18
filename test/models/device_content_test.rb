@@ -474,4 +474,74 @@ class DeviceContenttTest < Minitest::Test
       end
     end
   end
+
+  def test_event_filter_includes_matching_events
+    travel_to DateTime.new(2023, 8, 27, 10, 0, 0, "-0600") do
+      api = new_test_api
+      events = [
+        DeviceEvent.new(starts_at: DateTime.new(2023, 8, 27, 14, 0, 0, "-0600"), ends_at: DateTime.new(2023, 8, 27, 15, 0, 0, "-0600"), summary: "Soccer practice"),
+        DeviceEvent.new(starts_at: DateTime.new(2023, 8, 27, 16, 0, 0, "-0600"), ends_at: DateTime.new(2023, 8, 27, 17, 0, 0, "-0600"), summary: "Piano lesson"),
+        DeviceEvent.new(starts_at: DateTime.new(2023, 8, 27, 18, 0, 0, "-0600"), ends_at: DateTime.new(2023, 8, 27, 19, 0, 0, "-0600"), summary: "Dinner")
+      ]
+      api.stub :calendar_events, events do
+        result = DeviceContent.new.call(home_assistant_api: api, event_filter: "soccer, piano", always_show_today: true)
+
+        today = result[:day_groups].find { |d| d[:day_name] == "Today" }
+        summaries = today[:periodic].map { |e| e[:summary] }
+        assert_includes summaries, "Soccer practice"
+        assert_includes summaries, "Piano lesson"
+        refute_includes summaries, "Dinner"
+      end
+    end
+  end
+
+  def test_event_filter_blank_shows_all_events
+    travel_to DateTime.new(2023, 8, 27, 10, 0, 0, "-0600") do
+      api = new_test_api
+      events = [
+        DeviceEvent.new(starts_at: DateTime.new(2023, 8, 27, 14, 0, 0, "-0600"), ends_at: DateTime.new(2023, 8, 27, 15, 0, 0, "-0600"), summary: "Soccer practice"),
+        DeviceEvent.new(starts_at: DateTime.new(2023, 8, 27, 16, 0, 0, "-0600"), ends_at: DateTime.new(2023, 8, 27, 17, 0, 0, "-0600"), summary: "Dinner")
+      ]
+      api.stub :calendar_events, events do
+        result = DeviceContent.new.call(home_assistant_api: api, event_filter: "", always_show_today: true)
+
+        today = result[:day_groups].find { |d| d[:day_name] == "Today" }
+        summaries = today[:periodic].map { |e| e[:summary] }
+        assert_includes summaries, "Soccer practice"
+        assert_includes summaries, "Dinner"
+      end
+    end
+  end
+
+  def test_event_filter_only_commas_shows_all_events
+    travel_to DateTime.new(2023, 8, 27, 10, 0, 0, "-0600") do
+      api = new_test_api
+      events = [
+        DeviceEvent.new(starts_at: DateTime.new(2023, 8, 27, 14, 0, 0, "-0600"), ends_at: DateTime.new(2023, 8, 27, 15, 0, 0, "-0600"), summary: "Soccer practice")
+      ]
+      api.stub :calendar_events, events do
+        result = DeviceContent.new.call(home_assistant_api: api, event_filter: ",,", always_show_today: true)
+
+        today = result[:day_groups].find { |d| d[:day_name] == "Today" }
+        summaries = today[:periodic].map { |e| e[:summary] }
+        assert_includes summaries, "Soccer practice"
+      end
+    end
+  end
+
+  def test_event_filter_case_insensitive
+    travel_to DateTime.new(2023, 8, 27, 10, 0, 0, "-0600") do
+      api = new_test_api
+      events = [
+        DeviceEvent.new(starts_at: DateTime.new(2023, 8, 27, 14, 0, 0, "-0600"), ends_at: DateTime.new(2023, 8, 27, 15, 0, 0, "-0600"), summary: "Soccer Practice")
+      ]
+      api.stub :calendar_events, events do
+        result = DeviceContent.new.call(home_assistant_api: api, event_filter: "soccer", always_show_today: true)
+
+        today = result[:day_groups].find { |d| d[:day_name] == "Today" }
+        summaries = today[:periodic].map { |e| e[:summary] }
+        assert_includes summaries, "Soccer Practice"
+      end
+    end
+  end
 end

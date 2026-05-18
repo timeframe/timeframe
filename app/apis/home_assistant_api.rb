@@ -509,8 +509,7 @@ class HomeAssistantApi
       rainy_condition = %w[rainy pouring snowy snowy-rainy hail lightning lightning-rainy].include?(hour[:condition])
 
       next if precip == 0.0 && !rainy_condition
-      next if prob.present? && prob.to_i < 20
-      next if prob.present? && precip == 0.0 && prob.to_i < 40
+      next if prob.present? && prob.to_i < 10
 
       hour_i = DateTime.parse(hour[:datetime]).to_i
       next if hour_i < Time.now.to_i
@@ -526,15 +525,19 @@ class HomeAssistantApi
         (precip_type == "snow") ? "cm" : "mm"
       end
 
+      hour_prob = prob.present? ? prob.to_i : nil
+
       if existing_event
         existing_event[:end_i] += 3600
         existing_event[:precipitation_total] += convert_precipitation(hour[:precipitation], target_unit)
+        existing_event[:max_probability] = [existing_event[:max_probability], hour_prob].compact.max
       else
         events << {
           start_i: hour_i,
           end_i: hour_i + 3600,
           precipitation_type: precip_type,
-          precipitation_total: convert_precipitation(hour[:precipitation], target_unit)
+          precipitation_total: convert_precipitation(hour[:precipitation], target_unit),
+          max_probability: hour_prob
         }
       end
     end
@@ -551,6 +554,7 @@ class HomeAssistantApi
       next if formatted.start_with?("0.0")
 
       label = "#{it[:precipitation_type].capitalize} #{formatted}"
+      label = "#{label} #{it[:max_probability]}%" if it[:max_probability]
 
       DeviceEvent.new(
         id: "#{it[:start_i]}_ha_precip",

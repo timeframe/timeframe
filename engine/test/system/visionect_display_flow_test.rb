@@ -33,12 +33,12 @@ class VisionectDisplayFlowTest < ApplicationSystemTestCase
     assert device.confirmed?, "Visionect device should be auto-confirmed"
     assert device.display_key.present?, "Visionect device should have a display key"
 
-    # Find the device card and open its dropdown
+    # Navigate to settings page and enable demo mode
     card = first("h5", text: device_name).ancestor(".card")
     within(card) do
-      click_button "…"
-      click_button "Enable Demo Mode"
+      click_link "Configure"
     end
+    find("label", text: "Demo Mode").sibling("button").click
 
     # Should redirect back, device now in demo mode
     device.reload

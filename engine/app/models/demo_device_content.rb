@@ -3,7 +3,7 @@
 class DemoDeviceContent
   def call(timezone: "UTC", current_time: nil, days: 5, include_precip: true, include_wind: true,
     use_day_names: false, include_daily_weather: true, weather_row: false, start_time_only: false,
-    always_show_today: false, start_offset: 0, clothing_forecast: false, auto_icons: false)
+    always_show_today: false, start_offset: 0, clothing_forecast: false, auto_icons: false, event_filter: nil)
     current_time ||= Time.now.utc.in_time_zone(timezone)
 
     out = {}

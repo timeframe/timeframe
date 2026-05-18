@@ -157,7 +157,8 @@ class Device < ActiveRecord::Base
       weather_row: compact_view || eight_day, start_time_only: compact_view || eight_day,
       always_show_today: compact_view || eight_day,
       clothing_forecast: compact_view && configuration&.dig("clothing_forecast") == "true",
-      auto_icons: compact_view && configuration&.dig("auto_assign_icons") != "false"
+      auto_icons: compact_view && configuration&.dig("auto_assign_icons") != "false",
+      event_filter: configuration&.dig("event_filter")
     }
     args[:current_time] = current_time if current_time
     if demo_mode_enabled?

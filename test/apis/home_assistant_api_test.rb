@@ -1032,7 +1032,7 @@ class HomeAssistantApiTest < Minitest::Test
     ] do
       events = api.precip_calendar_events
       assert_equal 1, events.length
-      assert_equal "Rain 2.0\"", events.first.summary
+      assert_equal "Rain 2.0\" 80%", events.first.summary
       assert_equal "weather-rainy", events.first.icon
     end
   end
@@ -1046,7 +1046,7 @@ class HomeAssistantApiTest < Minitest::Test
     ] do
       events = api.precip_calendar_events
       assert_equal 1, events.length
-      assert_equal "Snow 2.0\"", events.first.summary
+      assert_equal "Snow 2.0\" 80%", events.first.summary
       assert_equal "snowflake", events.first.icon
     end
   end
@@ -1070,7 +1070,7 @@ class HomeAssistantApiTest < Minitest::Test
 
     api = HomeAssistantApi.new
     api.stub :hourly_forecast, [
-      {datetime: future_time, condition: "rainy", precipitation_probability: 15, precipitation: 1.0}
+      {datetime: future_time, condition: "rainy", precipitation_probability: 9, precipitation: 1.0}
     ] do
       assert_equal [], api.precip_calendar_events
     end
@@ -1144,7 +1144,7 @@ class HomeAssistantApiTest < Minitest::Test
     ] do
       events = api.precip_calendar_events
       assert_equal 1, events.length
-      assert_equal "Rain 0.1\"", events.first.summary
+      assert_equal "Rain 0.1\" 80%", events.first.summary
     end
   end
 
@@ -1158,7 +1158,7 @@ class HomeAssistantApiTest < Minitest::Test
     ] do
       events = api.precip_calendar_events
       assert_equal 1, events.length
-      assert_equal "Rain 25.4mm", events.first.summary
+      assert_equal "Rain 25.4mm 80%", events.first.summary
     end
   end
 
@@ -1172,7 +1172,7 @@ class HomeAssistantApiTest < Minitest::Test
     ] do
       events = api.precip_calendar_events
       assert_equal 1, events.length
-      assert_equal "Snow 2.5cm", events.first.summary
+      assert_equal "Snow 2.5cm 80%", events.first.summary
     end
   end
 
@@ -1187,7 +1187,7 @@ class HomeAssistantApiTest < Minitest::Test
     ] do
       events = api.precip_calendar_events
       assert_equal 1, events.length
-      assert_equal "Rain 25.4mm", events.first.summary
+      assert_equal "Rain 25.4mm 80%", events.first.summary
     end
   end
 
@@ -1202,7 +1202,7 @@ class HomeAssistantApiTest < Minitest::Test
     ] do
       events = api.precip_calendar_events
       assert_equal 1, events.length
-      assert_equal "Snow 5.0cm", events.first.summary
+      assert_equal "Snow 5.0cm 80%", events.first.summary
     end
   end
 
@@ -1217,7 +1217,7 @@ class HomeAssistantApiTest < Minitest::Test
     ] do
       events = api.precip_calendar_events
       assert_equal 1, events.length
-      assert_equal "Snow 5.0cm", events.first.summary
+      assert_equal "Snow 5.0cm 80%", events.first.summary
     end
   end
 
@@ -1232,7 +1232,7 @@ class HomeAssistantApiTest < Minitest::Test
     ] do
       events = api.precip_calendar_events
       assert_equal 1, events.length
-      assert_equal "Rain 50.0mm", events.first.summary
+      assert_equal "Rain 50.0mm 80%", events.first.summary
     end
   end
 
@@ -1246,7 +1246,7 @@ class HomeAssistantApiTest < Minitest::Test
     ] do
       events = api.precip_calendar_events
       assert_equal 1, events.length
-      assert_equal "Rain 1.0\"", events.first.summary
+      assert_equal "Rain 1.0\" 80%", events.first.summary
     end
   end
 
@@ -1260,7 +1260,7 @@ class HomeAssistantApiTest < Minitest::Test
     ] do
       events = api.precip_calendar_events
       assert_equal 1, events.length
-      assert_equal "Snow 1.0\"", events.first.summary
+      assert_equal "Snow 1.0\" 80%", events.first.summary
     end
   end
 

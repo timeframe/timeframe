@@ -46,9 +46,9 @@ class BooxMiraProSetupFlowTest < ApplicationSystemTestCase
     # Step 5: Enable demo mode so the display has content
     card = first("h5", text: device_name).ancestor(".card")
     within(card) do
-      click_button "…"
-      click_button "Enable Demo Mode"
+      click_link "Configure"
     end
+    find("label", text: "Demo Mode").sibling("button").click
 
     device.reload
     assert device.demo_mode_enabled?, "Device should be in demo mode"

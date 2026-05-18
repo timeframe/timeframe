@@ -46,12 +46,10 @@ class DevicesController < ApplicationController
     render "devices/error", locals: {klass: e.class.to_s, message: e.message, backtrace: e.backtrace}
   end
 
-  def preview
+  def settings
     @device = @location.devices.find(params[:id])
-    @account = @device.location.account
     @preview_tz = @device.location&.time_zone.presence || "America/Denver"
     @preview_now = Time.current.in_time_zone(@preview_tz)
-    render :preview_page
   end
 
   def screenshot
@@ -119,6 +117,19 @@ class DevicesController < ApplicationController
     device.update!(configuration: config)
     RefreshDeviceScreenshotJob.perform_later(device.id) if device.screenshotted?
     redirect_back fallback_location: root_path
+  end
+
+  def rename
+    device = @location.devices.find(params[:id])
+    new_name = params[:name].to_s.strip
+    if new_name.present?
+      device.update!(name: new_name)
+      redirect_to settings_account_location_device_path(@account, @location, device), notice: "Device renamed to \"#{new_name}\"."
+    else
+      redirect_to settings_account_location_device_path(@account, @location, device), alert: "Name can't be blank."
+    end
+  rescue ActiveRecord::RecordInvalid => e
+    redirect_to settings_account_location_device_path(@account, @location, device), alert: e.message
   end
 
   def destroy
