@@ -1,3 +1,28 @@
+## [2.12.0] - 2026-05-18
+
+### Added
+- Device settings page with full configuration, preview, and screenshot management
+- "Configure" button on device cards replaces the dropdown menu
+- Live preview on settings page with date/time picker and prev/next day navigation
+- Screenshot card with inline regenerate button (async, no page navigation)
+- Device rename functionality on settings page
+- Per-device event filter: comma-separated keywords to show only matching calendar events
+- Precipitation probability percentage shown in precip event labels (e.g. "Rain 0.5\" 60%")
+- Toggle to show/hide icons on two-day and three-day templates
+- Auto-assign icons option (conditional on show icons being enabled)
+
+### Changed
+- Device card footer now shows "Updated X ago" instead of device model name
+- Precipitation event threshold lowered from 20% to 10%
+- Preview page removed as standalone route; functionality moved into settings page
+
+### Fixed
+- Clothing forecast: daily high guardrail prevents shorts recommendation when daily forecast high is below threshold
+- Multi-day event denominator: non-daily events spanning multiple days now correctly show "1/2", "2/2" instead of "1/1", "2/1"
+- CSS specificity fix for time column padding on two-day template
+- Icon padding-left removed on two-day and three-day templates
+- Allow `%` character in event summaries (was stripped by sanitization)
+
 ## [2.11.0] - 2026-05-16
 
 ### Added
