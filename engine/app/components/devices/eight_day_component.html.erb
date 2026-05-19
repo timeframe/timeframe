@@ -15,12 +15,12 @@
   .eight-day-events img { width: 100%; display: block; margin-bottom: .2rem; border-radius: .2rem; border: 1px solid #999; box-sizing: border-box; }
 </style>
 
-<% unless view_object[:private_mode] %>
+<% unless @view_object[:private_mode] %>
   <div class="eight-day-columns">
-    <% view_object[:day_groups].each do |day| %>
+    <% @view_object[:day_groups].each do |day| %>
       <%
-        is_today = day[:date].to_date == view_object[:current_time].to_date
-        is_previous = day[:date].to_date < view_object[:current_time].to_date
+        is_today = day[:date].to_date == @view_object[:current_time].to_date
+        is_previous = day[:date].to_date < @view_object[:current_time].to_date
         col_class = "eight-day-col"
         col_class += " eight-day-col-today" if is_today
         col_class += " eight-day-col-previous" if is_previous
@@ -60,5 +60,5 @@
 <% end %>
 
 <div class="timestamp" style="position: absolute; bottom: 1px; right: 1px; font-family: 'Pixelify Sans', monospace; font-size: 8px; -webkit-font-smoothing: none; z-index: 10; writing-mode: vertical-rl; text-orientation: mixed;">
-  Noun Project icons. <%= view_object[:attribution] if view_object[:attribution].present? %> <%= view_object[:timestamp] %>
+  Noun Project icons. <%= @view_object[:attribution] if @view_object[:attribution].present? %> <%= @view_object[:timestamp] %>
 </div>

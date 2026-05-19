@@ -22,10 +22,10 @@
   .three-day-clothing-icon-pants { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23000' fill-rule='evenodd' d='m45.535 87.5v6.25h-20.535v-6.25zm8.93 0h20.535v6.25h-20.535zm-29.02-53.211v-15.539h7.3c-.09 2.633-.41 5.957-1.297 8.914-1.004 3.352-2.695 6.32-6.004 6.625zm10.414-15.539h28.273c.098 2.875.441 6.547 1.418 9.813 1.426 4.75 4.199 8.582 8.996 8.863v46.949h-19.09l-5.461-50-5.461 50h-19.09v-46.949c4.797-.281 7.57-4.113 8.996-8.863.977-3.266 1.32-6.938 1.418-9.813zm31.391 0h7.3v15.539c-3.309-.305-5-3.273-6.004-6.625-.887-2.961-1.207-6.281-1.297-8.914zm-41.805-3.125-.445-9.375h50l-.445 9.375z'/%3E%3C/svg%3E") center/contain no-repeat; }
 </style>
 
-<% unless view_object[:private_mode] %>
+<% unless @view_object[:private_mode] %>
   <div class="three-day-columns">
-    <% view_object[:day_groups].each do |day| %>
-      <div class="three-day-col<%= ' three-day-col-other' unless day[:date].to_date == view_object[:current_time].to_date %>">
+    <% @view_object[:day_groups].each do |day| %>
+      <div class="three-day-col<%= ' three-day-col-other' unless day[:date].to_date == @view_object[:current_time].to_date %>">
         <div class="three-day-header">
           <div style="display: flex; justify-content: space-between; align-items: center;"><%= day[:day_name] %><% if day[:clothing] %><span class="three-day-clothing-icon three-day-clothing-icon-<%= day[:clothing][:icon] %>"></span><% end %></div>
           <div class="three-day-date"><%= day[:date].strftime("%B %-d") %></div>
@@ -43,8 +43,8 @@
           </div>
         <% end %>
 
-        <% show_all = view_object.dig(:configuration, "show_all_events") == "true" %>
-        <% show_icons = view_object.dig(:configuration, "show_icons") != "false" %>
+        <% show_all = @view_object.dig(:configuration, "show_all_events") == "true" %>
+        <% show_icons = @view_object.dig(:configuration, "show_icons") != "false" %>
         <% daily_images = day[:show_daily] && day[:daily].any? ? (show_all ? day[:daily] : day[:daily].select { |e| e[:attachment_image] || e[:kids_icon] }) : [] %>
         <% visual_periodic = show_all ? day[:periodic] : day[:periodic].select { |e| e[:attachment_image] || e[:kids_icon] } %>
         <% if daily_images.any? || visual_periodic.any? %>
@@ -112,5 +112,5 @@
 <% end %>
 
 <div class="timestamp" style="position: absolute; bottom: 1px; right: 1px; font-family: 'Pixelify Sans', monospace; font-size: 8px; -webkit-font-smoothing: none; z-index: 10; writing-mode: vertical-rl; text-orientation: mixed;">
-  Noun Project icons. <%= view_object[:attribution] if view_object[:attribution].present? %> <%= view_object[:timestamp] %>
+  Noun Project icons. <%= @view_object[:attribution] if @view_object[:attribution].present? %> <%= @view_object[:timestamp] %>
 </div>

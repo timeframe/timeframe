@@ -7,6 +7,17 @@ class DevicesController < ApplicationController
   layout "device", only: [:show, :preview_frame]
   after_action(only: [:show, :screenshot]) { response.headers["X-Deploy-Time"] = DEPLOY_TIME.to_s }
 
+  TEMPLATE_COMPONENTS = {
+    "trmnl" => "Devices::TrmnlComponent",
+    "three_day" => "Devices::ThreeDayComponent",
+    "two_day" => "Devices::TwoDayComponent",
+    "eight_day" => "Devices::EightDayComponent",
+    "reterminal" => "Devices::ReterminalComponent",
+    "boox_mira" => "Devices::BooxMiraComponent",
+    "thirteen" => "Devices::ThirteenComponent",
+    "mira" => "Devices::MiraComponent"
+  }.freeze
+
   def show
     if @device.pending_confirmation?
       render "devices/confirmation", locals: {device: @device}, layout: params[:layout] != "false"
@@ -16,15 +27,15 @@ class DevicesController < ApplicationController
     @device.update_column(:last_connection_at, Time.current) if session[:device_session_token].present?
 
     template = @device.active_template
-
-    if @device.realtime_display?
-      @refresh = params[:refresh] != "false"
-    end
+    refresh = @device.realtime_display? && params[:refresh] != "false"
+    @refresh = refresh
 
     view_object = @device.device_content
     view_object[:configuration] = @device.try(:configuration) || {}
+    @banner = view_object[:banner]
 
-    render "devices/#{template}", locals: {view_object: view_object}, layout: params[:layout] != "false"
+    component = build_device_component(template, view_object, refresh: refresh, device: @device)
+    render component, layout: params[:layout] != "false"
   rescue => e
     render "devices/error", locals: {klass: e.class.to_s, message: e.message, backtrace: e.backtrace}
   end
@@ -40,8 +51,10 @@ class DevicesController < ApplicationController
     template = device.active_template
     view_object = device.device_content(current_time: current_time)
     view_object[:configuration] = device.try(:configuration) || {}
+    @banner = view_object[:banner]
 
-    render "devices/#{template}", locals: {view_object: view_object}, layout: "device"
+    component = build_device_component(template, view_object)
+    render component, layout: "device"
   rescue => e
     render "devices/error", locals: {klass: e.class.to_s, message: e.message, backtrace: e.backtrace}
   end
@@ -233,5 +246,18 @@ class DevicesController < ApplicationController
     end
 
     render plain: "Not authorized", status: :unauthorized
+  end
+
+  def build_device_component(template, view_object, refresh: false, device: nil)
+    component_class = TEMPLATE_COMPONENTS[template].constantize
+    args = {view_object: view_object}
+
+    if component_class.in?([Devices::BooxMiraComponent, Devices::MiraComponent])
+      args[:refresh] = refresh
+      args[:device] = device
+      args[:device_url] = device ? account_location_device_path(account_id: device.account&.id, location_id: device.location&.id, id: device.id) : nil
+    end
+
+    component_class.new(**args)
   end
 end

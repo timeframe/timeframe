@@ -1,23 +1,6 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Timeframe</title>
-    <link rel="stylesheet" href="/css/mdi/materialdesignicons.css">
-    <link rel="stylesheet" href="/css/device.css">
-    <% if @refresh %>
-      <%= javascript_include_tag "actioncable" %>
-    <% end %>
-  </head>
-
-  <body>
-    <%= yield %>
-    <% if @banner %>
 <div style="position: fixed; bottom: 0; left: 0; right: 0; background: #000; color: #fff; padding: 0.5rem 1rem; z-index: 50;">
   <div style="font-weight: 700; font-size: 1.25rem; line-height: 1.2;"><%= @banner[:title] %></div>
   <% if @banner[:description].present? %>
     <div style="font-size: 0.75rem; line-height: 1.3; margin-top: 0.25rem;"><%= @banner[:description].html_safe %></div>
   <% end %>
 </div>
-    <% end %>
-  </body>
-</html>

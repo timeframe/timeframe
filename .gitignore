@@ -15,3 +15,5 @@ timeframe_ha_development*
 /.ruby-lsp
 Gemfile.lock
 vendor/bundle/*
+test_output.txt
+test_full_output.txt

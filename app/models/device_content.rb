@@ -173,6 +173,13 @@ class DeviceContent
 
     out[:start_time_only] = start_time_only
 
+    # Check for active banner events
+    all_events = raw_events.flatten
+    banner_event = all_events.find { |e| e.banner? && e.start_i <= current_time.to_i && e.end_i > current_time.to_i }
+    if banner_event
+      out[:banner] = {title: banner_event.banner_title, description: banner_event.banner_description}
+    end
+
     out
   end
 end

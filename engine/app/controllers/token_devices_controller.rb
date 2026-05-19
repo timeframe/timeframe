@@ -19,15 +19,15 @@ class TokenDevicesController < ApplicationController
     @device.update_column(:last_connection_at, Time.current)
 
     template = @device.active_template
-
-    if @device.realtime_display?
-      @refresh = params[:refresh] != "false"
-    end
+    refresh = @device.realtime_display? && params[:refresh] != "false"
+    @refresh = refresh
 
     view_object = @device.device_content
     view_object[:configuration] = @device.try(:configuration) || {}
+    @banner = view_object[:banner]
 
-    render "devices/#{template}", locals: {view_object: view_object}, layout: params[:layout] != "false"
+    component = DevicesController::TEMPLATE_COMPONENTS[template].constantize.new(view_object: view_object)
+    render component, layout: params[:layout] != "false"
   rescue => e
     render "devices/error", locals: {klass: e.class.to_s, message: e.message, backtrace: e.backtrace}
   end

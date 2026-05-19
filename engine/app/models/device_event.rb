@@ -75,6 +75,38 @@ class DeviceEvent
     @summary.blank? || @description&.include?("timeframe-omit") || false
   end
 
+  def banner?
+    return false unless @description.present?
+    @description.include?("timeframe-banner") || @description.include?("#banner")
+  end
+
+  def banner_title
+    @summary
+  end
+
+  def banner_description
+    return nil unless @description.present?
+    text = @description.dup
+
+    # Strip timeframe metadata tags
+    text.gsub!(/timeframe-banner\s*/, "")
+    text.gsub!(/#banner\s*/, "")
+    text.gsub!(/timeframe-private\s*/, "")
+    text.gsub!(/timeframe-omit\s*/, "")
+    text.gsub!(/timeframe-title:\S+\s*/, "")
+    text.gsub!(/timeframe-kids-icon:\S+\s*/, "")
+    text.gsub!(/timeframe-only:[^\n]+\s*/, "")
+
+    # Google Calendar sends HTML; Outlook sends HTML too.
+    # If it looks like HTML, sanitize it to safe tags.
+    # Otherwise, treat as plain text and convert newlines to <br>.
+    if text.match?(/<[a-z][\s\S]*>/i)
+      sanitize_html(text)
+    else
+      ERB::Util.html_escape(text.strip).gsub("\n", "<br>")
+    end
+  end
+
   def hidden_for?(device_name)
     return false unless @description.present? && device_name.present?
     match = @description.match(/timeframe-only:(.+?)(?:\n|$)/)
@@ -213,5 +245,19 @@ class DeviceEvent
       precip: precip,
       wind_gust: wind_gust
     }
+  end
+
+  private
+
+  BANNER_SAFE_TAGS = %w[b i em strong u s br p ul ol li a span div h1 h2 h3 h4 h5 h6].freeze
+  BANNER_SAFE_ATTRS = %w[href style].freeze
+
+  def sanitize_html(html)
+    doc = Loofah.fragment(html)
+    doc.scrub!(:prune)  # Remove unsafe elements and their children
+    scrubber = Rails::HTML::PermitScrubber.new
+    scrubber.tags = BANNER_SAFE_TAGS
+    scrubber.attributes = BANNER_SAFE_ATTRS
+    doc.scrub!(scrubber).to_s.strip
   end
 end

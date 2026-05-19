@@ -19,6 +19,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "ferrum"
   spec.add_dependency "mini_magick"
   spec.add_dependency "extlz4"
+  spec.add_dependency "view_component"
 
   spec.add_development_dependency "minitest"
   spec.add_development_dependency "minitest-mock"

@@ -10,16 +10,16 @@
   <div style="position: relative">
     <div style="background:-webkit-gradient(linear,left top,left bottom,color-stop(0%, rgba(255,255,255,0)),color-stop(100%,rgba(255,255,255,1)));position: absolute;left: 0;right: 0; top: -2rem;height: 2rem;z-index: 5;"></div>
   </div>
-  <% if view_object[:minutely_precipitation_bars].present? %>
+  <% if @view_object[:minutely_precipitation_bars].present? %>
     <div class="hide-if-empty" style="background-color: #ddd; color: black; padding: 0.5rem 2rem; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
       <div>
         <div style="display: inline-block; padding-right: 1rem; vertical-align: super">
-          <i class="mdi mdi-<%= view_object[:minutely_weather_minutes_icon] %>"></i>
+          <i class="mdi mdi-<%= @view_object[:minutely_weather_minutes_icon] %>"></i>
         </div>
         <div style="display: inline-block">
           <table class="minutely" border="0" cellpadding="0" cellspacing="0">
             <tr>
-              <% view_object[:minutely_precipitation_bars].each do |bar_height| %>
+              <% @view_object[:minutely_precipitation_bars].each do |bar_height| %>
                 <td>
                   <div style="height: 100px; position:relative; width: 25px;">
                     <div style="background-color:black; position: absolute; height: <%= bar_height %>px; left: 0; right: 10px; bottom: 0; border-radius: 25px;"></div>
@@ -37,12 +37,12 @@
       </div>
     </div>
   <% end %>
-  <% if view_object[:now_playing].present? %>
+  <% if @view_object[:now_playing].present? %>
     <div class="hide-if-empty" style="background-color: black; color: white; padding: 1rem 2rem; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
       <i class="mdi mdi-volume-high"></i>
-      <strong><%= view_object[:now_playing][:artist] %></strong>
-      <% if view_object[:now_playing][:track].present? %>
-        : <%= view_object[:now_playing][:track] %>
+      <strong><%= @view_object[:now_playing][:artist] %></strong>
+      <% if @view_object[:now_playing][:track].present? %>
+        : <%= @view_object[:now_playing][:track] %>
       <% end %>
     </div>
   <% end %>
@@ -51,13 +51,13 @@
 <div style="margin-top: 1.5rem;"></div>
 <div style="display: flex; justify-content: space-between; margin-bottom: .5rem;">
   <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 1rem;">
-<%- view_object[:top_left].each do |top_left| -%>
+<%- @view_object[:top_left].each do |top_left| -%>
 <span style="margin-right: .5rem;"><i class="mdi mdi-<%= top_left[:icon] %>" style="margin-right: .25rem;"></i><%= top_left[:label] %></span>
 <%- end -%>
   </div>
 
   <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-<%- view_object[:top_right].each do |top_right| -%>
+<%- @view_object[:top_right].each do |top_right| -%>
 <span><i class="mdi mdi-<%= top_right[:icon] %>" style="margin-right: .25rem;"></i><%= top_right[:label] %></span>
 <%- end -%>
   </div>
@@ -68,7 +68,7 @@
 <div style="margin: 1rem 0 1.5rem; display: flex; justify-content: space-between; line-height: 2rem; font-size: 2rem;">
   <div><span id="mira-date"></span></div>
   <div style="white-space: nowrap;">
-<%- view_object[:weather_status].each do |weather_status| -%>
+<%- @view_object[:weather_status].each do |weather_status| -%>
 <span style="margin-left: .5rem;"><i class="mdi mdi-<%= weather_status[:icon] %>" style="<%= " display: inline-block; transform: rotate(#{weather_status[:rotation]}deg);" if weather_status[:rotation] %>"></i><%= weather_status[:label] %></span>
 <%- end -%>
   </div>
@@ -76,20 +76,20 @@
 
 <div style="margin: 1rem 0 2rem; display: flex; justify-content: space-between; line-height: .7">
   <div style="font-size: 5.5rem; margin-left: -.25rem"><span id="mira-clock"></span></div>
-  <div style="font-size: 5.5rem; text-align: right;"><%= view_object[:current_temperature] %></div>
+  <div style="font-size: 5.5rem; text-align: right;"><%= @view_object[:current_temperature] %></div>
 </div>
 
 <hr style="margin: 1rem 0 1rem; border: none; background-color: #ccc; color: #ccc; height: 2px;">
 
-<% unless view_object[:private_mode] %>
+<% unless @view_object[:private_mode] %>
   <div style="position: absolute; top: 15rem; bottom: 0; left: 2rem; right: 2rem; overflow: hidden;">
-    <%= render "devices/timeline", view_object: view_object %>
+    <%= render Devices::TimelineComponent.new(view_object: @view_object) %>
   </div>
 <% end %>
 
-<% if view_object[:attribution].present? %>
+<% if @view_object[:attribution].present? %>
   <div style="position: absolute; bottom: 0; right: 0; font-size: .25rem; opacity: .5; color: #999; writing-mode: vertical-rl; text-orientation: mixed; padding: 0.25rem; z-index: 10;">
-    <%= view_object[:attribution] %>
+    <%= @view_object[:attribution] %>
   </div>
 <% end %>
 
@@ -139,13 +139,11 @@
   setInterval(function() { updateClock(); checkFlash(); }, 1000);
   setInterval(updateDate, 60000);
 
-  // Expose for re-initialization after Action Cable content updates
   window.initMiraClock = initMiraClock;
 
-  <% if @refresh %>
-    // Action Cable: subscribe to device updates
+  <% if @refresh && @device && @device_url %>
     var knownDeployTime = '<%= DEPLOY_TIME %>';
-    var deviceUrl = '<%= account_location_device_path(account_id: params[:account_id], location_id: params[:location_id], id: @device.id) %>';
+    var deviceUrl = '<%= @device_url %>';
     var cable = ActionCable.createConsumer();
     cable.subscriptions.create(
       { channel: 'DeviceChannel', device_id: '<%= @device.id %>' },

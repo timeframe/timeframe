@@ -544,4 +544,63 @@ class DeviceContenttTest < Minitest::Test
       end
     end
   end
+
+  def test_banner_active_event
+    travel_to DateTime.new(2023, 8, 27, 10, 0, 0, "-0600") do
+      api = new_test_api
+      events = [
+        DeviceEvent.new(
+          starts_at: DateTime.new(2023, 8, 27, 9, 0, 0, "-0600"),
+          ends_at: DateTime.new(2023, 8, 27, 17, 0, 0, "-0600"),
+          summary: "Office Closed",
+          description: "timeframe-banner\nBuilding maintenance"
+        )
+      ]
+      api.stub :calendar_events, events do
+        result = DeviceContent.new.call(home_assistant_api: api, always_show_today: true)
+
+        assert result[:banner].present?
+        assert_equal "Office Closed", result[:banner][:title]
+        assert_includes result[:banner][:description], "Building maintenance"
+      end
+    end
+  end
+
+  def test_banner_not_active_when_event_in_future
+    travel_to DateTime.new(2023, 8, 27, 8, 0, 0, "-0600") do
+      api = new_test_api
+      events = [
+        DeviceEvent.new(
+          starts_at: DateTime.new(2023, 8, 27, 14, 0, 0, "-0600"),
+          ends_at: DateTime.new(2023, 8, 27, 17, 0, 0, "-0600"),
+          summary: "Later Event",
+          description: "#banner\nNot yet"
+        )
+      ]
+      api.stub :calendar_events, events do
+        result = DeviceContent.new.call(home_assistant_api: api, always_show_today: true)
+
+        assert_nil result[:banner]
+      end
+    end
+  end
+
+  def test_banner_nil_without_banner_events
+    travel_to DateTime.new(2023, 8, 27, 10, 0, 0, "-0600") do
+      api = new_test_api
+      events = [
+        DeviceEvent.new(
+          starts_at: DateTime.new(2023, 8, 27, 9, 0, 0, "-0600"),
+          ends_at: DateTime.new(2023, 8, 27, 17, 0, 0, "-0600"),
+          summary: "Normal Event",
+          description: "No banner here"
+        )
+      ]
+      api.stub :calendar_events, events do
+        result = DeviceContent.new.call(home_assistant_api: api, always_show_today: true)
+
+        assert_nil result[:banner]
+      end
+    end
+  end
 end

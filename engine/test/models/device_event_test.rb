@@ -511,4 +511,107 @@ class DeviceEventTest < Minitest::Test
 
     assert_nil event.precip
   end
+
+  def test_banner_with_timeframe_banner_keyword
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "Office Closed",
+      description: "timeframe-banner\nBuilding maintenance today"
+    )
+
+    assert event.banner?
+    assert_equal "Office Closed", event.banner_title
+    assert_equal "Building maintenance today", event.banner_description
+  end
+
+  def test_banner_with_hash_banner_keyword
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "Snow Day",
+      description: "#banner\nAll schools closed"
+    )
+
+    assert event.banner?
+    assert_equal "Snow Day", event.banner_title
+    assert_equal "All schools closed", event.banner_description
+  end
+
+  def test_banner_false_without_keyword
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "Regular Event",
+      description: "Just a normal event"
+    )
+
+    refute event.banner?
+  end
+
+  def test_banner_false_without_description
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "No Description"
+    )
+
+    refute event.banner?
+  end
+
+  def test_banner_description_sanitizes_html
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "Alert",
+      description: "timeframe-banner\n<b>Important</b><script>alert('xss')</script><p>Details here</p>"
+    )
+
+    assert event.banner?
+    desc = event.banner_description
+    assert_includes desc, "<b>Important</b>"
+    assert_includes desc, "<p>Details here</p>"
+    refute_includes desc, "<script>"
+    refute_includes desc, "alert('xss')"
+  end
+
+  def test_banner_description_with_rich_html
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "Update",
+      description: "#banner\n<ul><li>Item 1</li><li>Item <em>2</em></li></ul>"
+    )
+
+    desc = event.banner_description
+    assert_includes desc, "<ul>"
+    assert_includes desc, "<li>Item 1</li>"
+    assert_includes desc, "<em>2</em>"
+  end
+
+  def test_banner_description_plain_text_newlines
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "Notice",
+      description: "timeframe-banner\nLine one\nLine two"
+    )
+
+    desc = event.banner_description
+    assert_includes desc, "Line one<br>Line two"
+  end
+
+  def test_banner_description_strips_metadata_tags
+    event = DeviceEvent.new(
+      starts_at: 1621288800,
+      ends_at: 1621292400,
+      summary: "Alert",
+      description: "timeframe-banner\ntimeframe-kids-icon:car\ntimeframe-only:kitchen\nActual message"
+    )
+
+    desc = event.banner_description
+    refute_includes desc, "timeframe-kids-icon"
+    refute_includes desc, "timeframe-only"
+    assert_includes desc, "Actual message"
+  end
 end
