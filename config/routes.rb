@@ -35,10 +35,6 @@ Rails.application.routes.draw do
 
   mount GoodJob::Engine => "/good_job"
 
-  if Rails.env.development?
-    mount Lookbook::Engine, at: "/lookbook"
-  end
-
   namespace :api, defaults: {format: :json} do
     get :setup, to: "trmnl#setup"
     get :display, to: "trmnl#display"
